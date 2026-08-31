@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "certified-payroll-formats"
+version = "0.1.0"
+description = "Machine-readable reference data and zero-dependency validators for US certified payroll filing: WH-347, California eCPR XML, New York bulk upload XML, Washington PWIA."
+readme = "../README.md"
+license = { file = "../LICENSE" }
+requires-python = ">=3.9"
+keywords = ["certified-payroll", "prevailing-wage", "davis-bacon", "wh-347", "ecpr", "payroll", "xml", "compliance", "public-works"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Office/Business :: Financial :: Accounting",
+  "Topic :: Text Processing :: Markup :: XML",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/osketh/certified-payroll-formats"
+Source = "https://github.com/osketh/certified-payroll-formats"
+
+[project.scripts]
+certified-payroll = "certified_payroll_formats.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/certified_payroll_formats"]
+artifacts = ["src/certified_payroll_formats/data/*.json"]

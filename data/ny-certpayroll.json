@@ -1,0 +1,679 @@
+{
+  "id": "ny-certpayroll",
+  "jurisdiction": "us-ny",
+  "name": "New York certified payroll XML (bulk upload)",
+  "publisher": "New York State Department of Labor",
+  "schema": {
+    "url": "https://dol.ny.gov/certpayrollxsd",
+    "targetNamespace": null,
+    "targetNamespaceNote": "The schema declares no targetNamespace. Instance documents must therefore be un-namespaced; the official sample binds it with xsi:noNamespaceSchemaLocation=\"NYDOL_CertPayroll.xsd\". A generator that helpfully adds a default namespace produces a file the portal rejects.",
+    "elementFormDefault": "qualified",
+    "rootElement": "ProjectRollup",
+    "version": "2.0",
+    "versionNote": "Taken from the comment at the top of the schema: \"XML SCHEMA for electronic New York Certified Payroll Records Version 2.0\". NYSDOL distributes the .xsd inside a ZIP archive.",
+    "conventionalPrefix": null
+  },
+  "guide": {
+    "url": "https://dol.ny.gov/bizserve/ep/guide/buf"
+  },
+  "sample": {
+    "url": "https://dol.ny.gov/certpayrollsamplexml"
+  },
+  "reviewed": "2026-08-31",
+  "partitioning": {
+    "oneProjectPerFile": true,
+    "oneWeekPerFile": true,
+    "maxEmployeeWorkWeeks": 500,
+    "note": "The first two rules are structural: ProjectRollup carries a single prcNumber and a single weekEndingDate, so a file cannot span two projects or two weeks. The 500 cap is enforced by maxOccurs on employeeWorkWeek.",
+    "sources": [
+      "ny-dol-buf",
+      "ny-dol-xsd"
+    ]
+  },
+  "fileNaming": {
+    "pattern": null,
+    "regex": "\\.xml$",
+    "note": "No naming convention is prescribed. The guide requires only that the file extension be .xml, and recommends a desktop text or XML editor over an online one.",
+    "sources": [
+      "ny-dol-buf"
+    ]
+  },
+  "rules": [
+    {
+      "id": "ny.root.noNamespace",
+      "severity": "error",
+      "statement": "The document element must be ProjectRollup and must not be in a namespace. The schema declares no targetNamespace, so a namespaced instance does not validate.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-sample"
+      ]
+    },
+    {
+      "id": "ny.prcNumber.length",
+      "severity": "error",
+      "statement": "prcNumber must be exactly 10 characters, and must match the project selected in the portal.",
+      "expressibleInXsd": "partly",
+      "xsdNote": "The length is in the schema; the match against the selected project is a portal-side check.",
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.weekEndingDate.format",
+      "severity": "error",
+      "statement": "weekEndingDate is an xs:dateTime restricted to the pattern \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z \u2014 a bare date, an offset other than Z, or a timestamp without milliseconds all fail. The official sample uses 2025-08-03T00:00:00.000Z.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-sample",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.employee.exactlyOneIdentifier",
+      "severity": "error",
+      "statement": "An employee must carry a value in either dateOfBirth or ssnLast4, and cannot include a value in both. The schema declares both minOccurs=\"0\" and cannot express the constraint, so a file with both \u2014 or with neither \u2014 is schema-valid and portal-invalid.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.ssnLast4.format",
+      "severity": "error",
+      "statement": "ssnLast4, when present, must be exactly four digits. Leading zeros must be preserved \u2014 it is a string, not a number.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-sample"
+      ]
+    },
+    {
+      "id": "ny.apprentice.boolean",
+      "severity": "error",
+      "statement": "nysRegisteredApprentice is an xs:boolean and takes true or false. The element's own documentation string in the schema says the format is \"Y\" for Yes or \"N\" for No; that annotation is stale and contradicts both its declared type and the official sample, which uses true and false.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-sample",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.address.stateFullName",
+      "severity": "error",
+      "statement": "address/state takes the full state name, not the two-letter abbreviation. The schema's documentation string says \"two uppercase letters of the state abbreviation. For example: CA\", but the restriction permits 1 to 50 characters, the official sample carries New York, and the bulk upload guide lists invalid state abbreviations as an upload error because full names are required.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ny-dol-buf",
+        "ny-dol-sample",
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.address.postalCode",
+      "severity": "error",
+      "statement": "postalCode must be exactly five digits and postalCodeExt, when present, exactly four.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.address.country",
+      "severity": "error",
+      "statement": "country is required by the schema \u2014 it carries no minOccurs and therefore defaults to 1 \u2014 although the bulk upload guide lists it among the optional elements. Send it.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.employeeWorkWeeks.max",
+      "severity": "error",
+      "statement": "At most 500 employeeWorkWeek elements per file.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.employee.noDuplicates",
+      "severity": "error",
+      "statement": "Duplicate employee entries within a file are an upload error. The schema cannot express uniqueness.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.days.max",
+      "severity": "error",
+      "statement": "A workWeek carries at most seven day elements.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.days.withinWeek",
+      "severity": "error",
+      "statement": "Day dates must fall within the seven-day window ending on weekEndingDate, and must not repeat within a workWeek. Dates outside the valid range for the work week are a stated upload error.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.days.nestedElement",
+      "severity": "advisory",
+      "statement": "Each day element contains a child also named day, which holds the date. The nesting is legal XML but is a common source of confusion in generated bindings and XPath expressions.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-sample"
+      ]
+    },
+    {
+      "id": "ny.hours.range",
+      "severity": "error",
+      "statement": "standardTimeHours and overTimeHours are decimals of at most 24 with at most two fraction digits.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.rates.range",
+      "severity": "error",
+      "statement": "stHourlyRate and otHourlyRate are decimals of at most 999.99 with at most two fraction digits.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.money.range",
+      "severity": "error",
+      "statement": "deductionsGrossEarnings and netWages are decimals of at most 999999.99 with at most two fraction digits.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.deduction.max",
+      "severity": "error",
+      "statement": "At most 10 deduction elements per employee work week.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.deduction.amountPattern",
+      "severity": "error",
+      "statement": "A deduction amount is a string matching ([0-9]{1,4})(\\.[0-9]{1,2})? \u2014 at most four digits before the decimal point, so no single deduction above 9999.99, and no leading plus or minus sign.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.supplementalPayment.max",
+      "severity": "error",
+      "statement": "At most 50 supplementalPayment elements per employee work week.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd",
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.supplementalPayment.typeEnum",
+      "severity": "error",
+      "statement": "A supplemental payment type must be one of Health/Welfare, Vacation/Holiday, Apprenticeship/Training, Pension, or the literal string Other Benefit (Type).",
+      "expressibleInXsd": true,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    },
+    {
+      "id": "ny.workCategory.approvedList",
+      "severity": "warning",
+      "statement": "workCategory is validated against the system's approved classification list; an unrecognised classification is a stated upload error. The list is not published as a machine-readable file, so this cannot be checked offline.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ny-dol-buf"
+      ]
+    },
+    {
+      "id": "ny.ssnLast4.staleAnnotation",
+      "severity": "advisory",
+      "statement": "The ssnLast4 documentation string requires the value to match a name id attribute of the form SSN::NAME. No name element or id attribute exists anywhere in version 2.0 of the schema, where names are carried in firstName, middleName and lastName. The annotation is a leftover and describes nothing in the current format.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ny-dol-xsd"
+      ]
+    }
+  ],
+  "elements": [
+    {
+      "path": "ProjectRollup",
+      "name": "ProjectRollup",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "ProjectRollup/prcNumber",
+      "name": "prcNumber",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "10",
+        "maxLength": "10"
+      },
+      "documentation": "This element contains the PRC number of the Project"
+    },
+    {
+      "path": "ProjectRollup/weekEndingDate",
+      "name": "weekEndingDate",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:dateTime",
+      "facets": {
+        "pattern": "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z"
+      },
+      "documentation": "This element contains the ending date of the payroll week for this public project. A payroll week is defined as a seven-day work period. Date format is yyyy-mm-dd. For example: 2014-12-25"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks",
+      "name": "employeeWorkWeeks",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek",
+      "name": "employeeWorkWeek",
+      "minOccurs": "1",
+      "maxOccurs": "500"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee",
+      "name": "employee",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/firstName",
+      "name": "firstName",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "45"
+      },
+      "documentation": "This element contains this worker's first name."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/middleName",
+      "name": "middleName",
+      "minOccurs": "0",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "0",
+        "maxLength": "45"
+      },
+      "documentation": "This element contains this worker's middle name."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/lastName",
+      "name": "lastName",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "45"
+      },
+      "documentation": "This element contains this worker's last name."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/dateOfBirth",
+      "name": "dateOfBirth",
+      "minOccurs": "0",
+      "maxOccurs": "1",
+      "type": "xs:date",
+      "documentation": "This element contains the date of birth for this worker in sequence. Date format is yyyy-mm-dd. For example: 2014-12-25"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/ssnLast4",
+      "name": "ssnLast4",
+      "minOccurs": "0",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{4}"
+      },
+      "documentation": "This element contains this worker's last 4 digits of their social security number. String format must be a 4-digit number, For example: 1234 and must match name id attribute SSN of \"SSN::NAME\""
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/nysRegisteredApprentice",
+      "name": "nysRegisteredApprentice",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:boolean",
+      "documentation": "This element indicates if this worker is a registered apprentice in New York City. String format must be either \"Y\" for Yes or \"N\" for No. For example: Y"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address",
+      "name": "address",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the address of this worker in sequence."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/address1",
+      "name": "address1",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "42"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/address2",
+      "name": "address2",
+      "minOccurs": "0",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "42"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/city",
+      "name": "city",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "40"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/state",
+      "name": "state",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "50"
+      },
+      "documentation": "This element contains the state of this worker's address. String format must be two uppercase letters of the state abbreviation. For example: CA"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/postalCode",
+      "name": "postalCode",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{5}"
+      },
+      "documentation": "This element contains the zip code of this worker's address. String format must be a 5-digit number. For example: 94612"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/postalCodeExt",
+      "name": "postalCodeExt",
+      "minOccurs": "0",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{4}"
+      },
+      "documentation": "This element contains the zip code of this worker's address. String format must be a 5-digit number. For example: 94612"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/employee/address/country",
+      "name": "country",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "50"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/deductionsGrossEarnings",
+      "name": "deductionsGrossEarnings",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "999999.99",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/netWages",
+      "name": "netWages",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "999999.99",
+        "fractionDigits": "2"
+      },
+      "documentation": "This element contains the U.S. dollar amount paid to the worker this week."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks",
+      "name": "workWeeks",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the standard federal and state payroll reporting categories of deductions, contributions, and payments. Please refer to accounting if you have questions on each category."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek",
+      "name": "workWeek",
+      "minOccurs": "1",
+      "maxOccurs": "unbounded"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/workCategory",
+      "name": "workCategory",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "300"
+      },
+      "documentation": "This element contains this worker's classification."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/stHourlyRate",
+      "name": "stHourlyRate",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "999.99",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/otHourlyRate",
+      "name": "otHourlyRate",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "999.99",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/days",
+      "name": "days",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/days/day",
+      "name": "day",
+      "minOccurs": "1",
+      "maxOccurs": "7"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/days/day/day",
+      "name": "day",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:date"
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/days/day/standardTimeHours",
+      "name": "standardTimeHours",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "24",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/workWeeks/workWeek/days/day/overTimeHours",
+      "name": "overTimeHours",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "24",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/deductions",
+      "name": "deductions",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the standard federal and state payroll reporting categories of deductions, contributions, and payments. Please refer to accounting if you have questions on each category."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/deductions/deduction",
+      "name": "deduction",
+      "minOccurs": "0",
+      "maxOccurs": "10",
+      "documentation": "This element contains the deduction type and amount."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/deductions/deduction/type",
+      "name": "type",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "50"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/deductions/deduction/amount",
+      "name": "amount",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "([0-9]{1,4})(\\.[0-9]{1,2})?"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments",
+      "name": "supplementalPayments",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the standard federal and state payroll reporting categories of deductions, contributions, and payments. Please refer to accounting if you have questions on each category."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments/supplementalPayment",
+      "name": "supplementalPayment",
+      "minOccurs": "0",
+      "maxOccurs": "50",
+      "documentation": "This element contains the deduction type and amount."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments/supplementalPayment/type",
+      "name": "type",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "enumeration": "Other Benefit (Type)"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments/supplementalPayment/workCategory",
+      "name": "workCategory",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "300"
+      },
+      "documentation": "This element contains this benefit's worker classification."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments/supplementalPayment/explanation",
+      "name": "explanation",
+      "minOccurs": "0",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "0",
+        "maxLength": "256"
+      },
+      "documentation": "this element contains notes about this employee's payroll. Details about what deductions, payments and contributions are being paid to this worker."
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments/supplementalPayment/standardHourlyRate",
+      "name": "standardHourlyRate",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "10000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "ProjectRollup/employeeWorkWeeks/employeeWorkWeek/supplementalPayments/supplementalPayment/overtimeHourlyRate",
+      "name": "overtimeHourlyRate",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxInclusive": "10000",
+        "fractionDigits": "2"
+      }
+    }
+  ],
+  "elementCount": 43
+}

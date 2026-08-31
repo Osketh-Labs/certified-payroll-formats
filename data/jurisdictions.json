@@ -1,0 +1,171 @@
+{
+  "$comment": "Filing requirements for weekly certified payroll, by jurisdiction. Facts only; every entry carries source ids resolvable against data/sources.json. Not legal advice — the linked official sources govern.",
+  "reviewed": "2026-08-31",
+  "coverage": {
+    "included": ["us", "us-ca", "us-ny", "us-wa"],
+    "note": "The federal baseline plus the three states that publish a machine-readable format and a schema you can build against. This is not a survey of all fifty states, and a city or county program can apply on top of a state one."
+  },
+  "jurisdictions": [
+    {
+      "id": "us",
+      "name": "Federal (Davis-Bacon and Related Acts)",
+      "level": "federal",
+      "filingFrequency": {"value": "weekly", "detail": "One certified payroll per workweek, each accompanied by a signed Statement of Compliance."},
+      "acceptedFormats": [
+        {"kind": "form", "name": "WH-347", "required": false, "note": "Optional. Any format satisfies the requirement provided it carries a Statement of Compliance with wording identical to WH-347 page 2."}
+      ],
+      "machineReadableFormat": null,
+      "filedWith": "The contracting agency — or, where the federal agency is not a party to the contract, the applicant, sponsor or owner that maintains the records for transmission to the agency.",
+      "centralPortal": null,
+      "workerIdentifier": {
+        "accepts": ["ssn-last-4", "worker-specific-number"],
+        "prohibits": ["ssn-full"],
+        "note": "An individual identifying number: the last four digits of the Social Security number, or any number specific to that worker. Full Social Security numbers must not be included."
+      },
+      "hoursCategories": ["straight-time", "overtime"],
+      "fringeModel": {
+        "kind": "credit-vs-cash",
+        "note": "Column 6B carries the fringe benefit credit claimed for contributions to bona fide plans; column 6C carries cash paid in lieu of fringe benefits. They are different obligations and must not be combined."
+      },
+      "projectKey": "Project number or prime contract number assigned by the contracting agency.",
+      "recordRetention": null,
+      "penalties": null,
+      "authority": ["40 U.S.C. § 3145", "29 CFR 5.5(a)(3)(ii)"],
+      "sources": ["usc-40-3145", "cfr-29-5.5", "whd-wh347", "whd-dbra"]
+    },
+    {
+      "id": "us-ca",
+      "name": "California",
+      "level": "state",
+      "filingFrequency": {"value": "at-least-monthly", "detail": "At least monthly, or more frequently if the contract with the awarding body specifies. The payroll period itself remains weekly."},
+      "acceptedFormats": [
+        {"kind": "portal-entry", "name": "Online entry", "required": false},
+        {"kind": "xml", "name": "eCPR XML", "required": false, "note": "Uploaded against DIR's published CPR schema."}
+      ],
+      "machineReadableFormat": {
+        "format": "xml",
+        "formatId": "ca-ecpr",
+        "schemaUrl": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd",
+        "namespace": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd",
+        "rootElement": "eCPR",
+        "schemaVersion": "1.3",
+        "maxRecordsPerFile": 500,
+        "recordUnit": "employee",
+        "filenameConvention": "[last 4 digits of FEIN]_[Project ID]_[week ending date MMDDYY].xml",
+        "filenameExample": "6789_DIR001_010915.xml"
+      },
+      "filedWith": "The Labor Commissioner, through DIR's Public Works Website Services.",
+      "centralPortal": {"name": "DIR Public Works Website Services (eCPR)", "url": "https://www.dir.ca.gov/Public-Works/Certified-Payroll-Reporting.html"},
+      "workerIdentifier": {
+        "accepts": ["ssn-full"],
+        "prohibits": [],
+        "note": "The schema requires a full nine-digit ssn element. DIR redacts it from the public CPR search under Labor Code § 1776(e); copies furnished to the public are marked to prevent disclosure of a worker's name, address and Social Security number, while multiemployer Taft-Hartley trust funds requesting records to allocate contributions receive the last four digits."
+      },
+      "hoursCategories": ["straight-time", "overtime", "doubletime"],
+      "fringeModel": {
+        "kind": "itemised-by-fund",
+        "note": "deductionsContribPay itemises SDI, vacationHoliday, healthWelfare, pension, training, fundAdmin, dues, travelSubs and savings separately, alongside tax withholdings and a total."
+      },
+      "projectKey": "projectID (the DLSE identifier for a PWC-100 registered project), plus contractorPWCR for the contractor's public works registration.",
+      "recordRetention": null,
+      "penalties": {"amount": "$100 per day of violation", "cap": "$5,000 per project", "graceNote": "Cannot be imposed until 14 days after the deadline has passed.", "authority": "Labor Code § 1771.4"},
+      "nonPerformanceFiling": {"supported": true, "element": "statementOfNP", "note": "An affirmative \"no work this period\" filing that keeps a project's record continuous. When true, no employee elements are included."},
+      "exemptions": {"note": "A few categories of project are exempt from reporting online to DIR.", "sources": ["ca-dir-exemptions"]},
+      "authority": ["Labor Code §§ 1771.4, 1776"],
+      "sources": ["ca-lc-1771.4", "ca-lc-1776", "ca-dir-cpr", "ca-dir-xsd", "ca-dir-sample", "ca-dir-guideline"]
+    },
+    {
+      "id": "us-ny",
+      "name": "New York",
+      "level": "state",
+      "filingFrequency": {"value": "at-least-every-30-days", "detail": "At least once every 30 days for the length of the project. The payroll period itself remains weekly."},
+      "acceptedFormats": [
+        {"kind": "portal-entry", "name": "Online entry", "required": false},
+        {"kind": "xml", "name": "NYSDOL certified payroll XML", "required": false, "note": "XML only for bulk upload — no CSV, no spreadsheet, and no API for the portal."}
+      ],
+      "machineReadableFormat": {
+        "format": "xml",
+        "formatId": "ny-certpayroll",
+        "schemaUrl": "https://dol.ny.gov/certpayrollxsd",
+        "namespace": null,
+        "rootElement": "ProjectRollup",
+        "schemaVersion": "2.0",
+        "maxRecordsPerFile": 500,
+        "recordUnit": "employeeWorkWeek",
+        "partitionRules": ["one project per file, keyed by prcNumber", "one week per file, keyed by weekEndingDate", "no more than 500 employee work weeks per file"],
+        "filenameConvention": null,
+        "filenameNote": "No naming convention is prescribed; the file extension must be .xml."
+      },
+      "filedWith": "The New York State Department of Labor, through the Certified Payroll Portal.",
+      "centralPortal": {"name": "NYSDOL Certified Payroll Portal", "url": "https://dol.ny.gov/electronic-payroll"},
+      "workerIdentifier": {
+        "accepts": ["ssn-last-4", "date-of-birth"],
+        "prohibits": ["ssn-full"],
+        "exactlyOne": true,
+        "note": "An employee must supply a value in either dateOfBirth or ssnLast4 — you cannot include a value in both. The XSD declares both as optional and therefore cannot express this rule; a file carrying both, or neither, is schema-valid and portal-invalid."
+      },
+      "hoursCategories": ["straight-time", "overtime"],
+      "fringeModel": {
+        "kind": "supplemental-payments",
+        "enumeration": ["Health/Welfare", "Vacation/Holiday", "Apprenticeship/Training", "Pension", "Other Benefit (Type)"],
+        "note": "Supplemental payments are typed from a closed list and carry a standard and an overtime hourly rate, per work classification."
+      },
+      "projectKey": "prcNumber — the Prevailing Rate Case number, exactly 10 characters, which must match the project selected in the portal.",
+      "classificationValidation": {"validated": true, "note": "workCategory is validated against the system's approved classification list; unrecognised classifications are a stated upload error."},
+      "mandatoryElectronicSince": "2026-01-01",
+      "recordRetention": null,
+      "penalties": {"amount": "up to $100 per day", "graceNote": "A statutory 14-day grace period applies to late submissions.", "criminal": "Willful failure to provide accurate records is a Class E felony, with civil penalties up to $1,000.", "authority": "Labor Law Article 8 § 220-j"},
+      "enforcementPosture": {
+        "asOf": "2026-08",
+        "discretionary": true,
+        "note": "NYSDOL has stated it is exercising discretion not to issue fines for late payrolls while contractors and agencies acclimate to the system, and that official notice will precede enforcement. This is a discretionary posture, not a change in the statute — check the Department's electronic payroll FAQ before relying on it.",
+        "sources": ["ny-dol-faq"]
+      },
+      "authority": ["Labor Law Article 8, § 220-j"],
+      "sources": ["ny-ll-220j", "ny-dol-ep", "ny-dol-buf", "ny-dol-xsd", "ny-dol-sample", "ny-dol-faq"]
+    },
+    {
+      "id": "us-wa",
+      "name": "Washington",
+      "level": "state",
+      "filingFrequency": {"value": "at-least-monthly", "detail": "At least once per month for public works. The payroll period itself remains weekly."},
+      "acceptedFormats": [
+        {"kind": "portal-entry", "name": "Online entry", "required": false},
+        {"kind": "xml", "name": "PWIA XML payroll upload", "required": false}
+      ],
+      "machineReadableFormat": {
+        "format": "xml",
+        "formatId": "wa-pwia",
+        "schemaUrl": null,
+        "schemaNote": "The XML schema is published inside the PWIA system in My L&I and is not available at a public URL; the upload guide instructs filers to save it from within the portal. The rules recorded in data/wa-pwia.json therefore come from the published upload guide, not from the schema itself.",
+        "namespace": null,
+        "rootElement": null,
+        "maxRecordsPerFile": null,
+        "recordUnit": "payroll week",
+        "filenameConvention": null
+      },
+      "filedWith": "The Department of Labor & Industries, through the Contractor Portal in My L&I.",
+      "centralPortal": {"name": "L&I Contractor Portal (PWIA)", "url": "https://www.lni.wa.gov/licensing-permits/public-works-projects/contractors-employers/"},
+      "workerIdentifier": {
+        "accepts": ["ssn-full"],
+        "prohibits": [],
+        "note": "RCW 39.12.120 requires the Social Security number in the payroll record itself. The upload guide adds that it must be a unique number within the file."
+      },
+      "hoursCategories": ["straight-time", "overtime"],
+      "fringeModel": {
+        "kind": "hourly-usual-benefits",
+        "note": "The statute requires the hourly rate of usual benefits. In the XML format each benefit is a repeated tradeBenefit element with a name and an hourly amount that must be greater than zero when present."
+      },
+      "projectKey": "The intent/project the filer has access to in PWIA.",
+      "recordRetention": {"years": 3, "from": "the awarding agency's acceptance of the project"},
+      "penalties": {"note": "Noncompliance is a violation of RCW 39.12.050; contractors can be penalized for failing to file.", "authority": "RCW 39.12.120, RCW 39.12.050"},
+      "relatedFilings": [
+        {"name": "Statement of Intent to Pay Prevailing Wages", "when": "After award and before work begins", "note": "Posted on site for contracts over $10,000."},
+        {"name": "Affidavit of Wages Paid", "when": "At completion"}
+      ],
+      "distinctiveFields": ["Ten-hour workday (4-10) agreements executed under RCW 49.28.065, which have no analogue on the federal form."],
+      "authority": ["RCW 39.12.120", "WAC 296-127-320"],
+      "sources": ["wa-rcw-39.12.120", "wa-rcw-49.28.065", "wa-lni-pw", "wa-lni-xml-guide", "wa-wac-296-127-320"]
+    }
+  ]
+}

@@ -1,0 +1,1075 @@
+{
+  "id": "ca-ecpr",
+  "jurisdiction": "us-ca",
+  "name": "California eCPR XML",
+  "publisher": "California Department of Industrial Relations",
+  "schema": {
+    "url": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd",
+    "targetNamespace": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd",
+    "elementFormDefault": "qualified",
+    "rootElement": "eCPR",
+    "version": "1.3",
+    "versionNote": "Taken from the comment at the top of the schema: \"XML SCHEMA for electronic California Payroll Records Version 1.3\". The accompanying guideline PDF is separately versioned 1.10 and its release notes are headed 1.5; the two numbering schemes do not line up.",
+    "conventionalPrefix": "CPR"
+  },
+  "guide": {
+    "url": "https://www.dir.ca.gov/Public-Works/CPR/eCPRXMLGuideline.pdf",
+    "version": "1.10",
+    "date": "2016-01"
+  },
+  "sample": {
+    "url": "https://www.dir.ca.gov/Public-Works/CPR/CPRSample.xml"
+  },
+  "reviewed": "2026-08-31",
+  "fileNaming": {
+    "pattern": "[last 4 digits of FEIN]_[Project ID]_[week ending date].xml",
+    "example": "6789_DIR001_010915.xml",
+    "regex": "^[0-9]{4}_[^_]+_[0-9]{6}\\.xml$",
+    "note": "The guideline's worked example uses a six-digit MMDDYY week ending date and a Project ID of DIR001, while the schema constrains projectID to [0-9]{1,18} and the official sample carries the value 9. Treat the filename check as advisory.",
+    "sources": [
+      "ca-dir-guideline"
+    ]
+  },
+  "rules": [
+    {
+      "id": "ca.root.namespace",
+      "severity": "error",
+      "statement": "The document element must be eCPR in the namespace http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.licenseType.enum",
+      "severity": "error",
+      "statement": "licenseType must be CSLB, PL or OTHER.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.pwcr.format",
+      "severity": "error",
+      "statement": "contractorPWCR must be a 10-digit public works contractor registration number, or the literal NA if the contractor has not registered.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.fein.format",
+      "severity": "error",
+      "statement": "contractorFEIN must be exactly nine digits, with no hyphen.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.email.format",
+      "severity": "error",
+      "statement": "contractorEmail must match the schema's own pattern [^@]+@[^\\.]+\\..+ and be at most 60 characters.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.projectInfo.fixedEmpty",
+      "severity": "error",
+      "statement": "awardingBody, contractAgencyID, projectName and every child of projectLocation are declared fixed=\"\" \u2014 the elements must be present and their content must be empty.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.projectInfo.mandatory",
+      "severity": "error",
+      "statement": "Under projectInfo the fields to fill in are contractAgency and projectID. The guideline states all other fields must be empty; the schema's own projectID annotation offers an alternative, saying that a filer without a projectID may instead supply valid awardingBodyID, projectNum and contractID so the system can look up the registered PWC-100 project. Those three are not fixed=\"\", so the schema permits that path.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-guideline",
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.payrollNum.empty",
+      "severity": "error",
+      "statement": "payrollNum and amendmentNum are assigned by the eCPR system and are declared fixed=\"\" \u2014 send them empty.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.forWeekEnding.format",
+      "severity": "error",
+      "statement": "forWeekEnding is an xs:date in yyyy-mm-dd form.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.statementOfNP.enum",
+      "severity": "error",
+      "statement": "statementOfNP must be the literal true or false.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.statementOfNP.noEmployees",
+      "severity": "error",
+      "statement": "When statementOfNP is true the payroll week is a statement of non-performance: the schema's annotation on employee says payrollInfo should then carry only statementOfNP true, payrollNum, forWeekEnding and an empty employees tag. When it is false at least one employee is expected.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.employees.max",
+      "severity": "error",
+      "statement": "At most 500 employee elements per file. The cap is in the schema (maxOccurs=\"500\") but is not stated in the guideline.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.name.idAttribute",
+      "severity": "error",
+      "statement": "Each employee name element carries an id attribute of the form SSN::NAME. The schema's own annotation states that SSN must match the ssn of the given worker and NAME is the worker's name in uppercase; the guideline repeats the upper-case requirement.",
+      "expressibleInXsd": false,
+      "xsdNote": "The schema declares id as an optional xs:string with no pattern, so the format is documented but not enforced.",
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.name.idMatchesSsn",
+      "severity": "error",
+      "statement": "The SSN portion of the name id attribute must match the employee's ssn element, per the schema's annotation on the name element.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.ssn.format",
+      "severity": "error",
+      "statement": "ssn must be exactly nine digits. Unlike the federal form, California requires the full number; DIR redacts it from the public search under Labor Code \u00a7 1776(e).",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-lc-1776"
+      ]
+    },
+    {
+      "id": "ca.days.exactlySeven",
+      "severity": "error",
+      "statement": "hrsWorkedEachDay must contain exactly seven day elements.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.days.consecutive",
+      "severity": "warning",
+      "statement": "The seven day dates should be distinct and consecutive, ending on forWeekEnding. The schema constrains neither the ordering nor the relationship to the week ending date.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.hours.range",
+      "severity": "error",
+      "statement": "Per-day straightTime, overtime and doubletime are decimals below 100 with at most two fraction digits; weekly totals are decimals below 1000.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.totals.matchDays",
+      "severity": "warning",
+      "statement": "totHrsStraightTime, totHrsOvertime and totHrsDoubletime should equal the sums of the corresponding per-day values. The schema cannot express the relationship.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.deductions.totalMatchesItems",
+      "severity": "warning",
+      "statement": "deductionsContribPay/total should equal the sum of the itemised elements that precede it (fedTax, FICA, stateTax, SDI, vacationHoliday, healthWelfare, pension, training, fundAdmin, dues, travelSubs, savings, other). This is inferred from the element naming; DIR does not state the arithmetic.",
+      "expressibleInXsd": false,
+      "inferred": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.gross.projectNotAboveAll",
+      "severity": "warning",
+      "statement": "grossAmountEarned/thisProject should not exceed grossAmountEarned/allWork. Inferred from the element definitions; DIR does not state the relationship.",
+      "expressibleInXsd": false,
+      "inferred": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.notes.presentMayBeEmpty",
+      "severity": "error",
+      "statement": "The notes element is optional in content but not in presence: the guideline calls it not mandatory, while the schema declares it with the default minOccurs of 1 and a minLength of 0. Send the element with empty content rather than omitting it.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.filename.convention",
+      "severity": "advisory",
+      "statement": "The submitted file should be named [last 4 of FEIN]_[Project ID]_[week ending date].xml and must end in .xml.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-guideline"
+      ]
+    }
+  ],
+  "elements": [
+    {
+      "path": "eCPR",
+      "name": "eCPR",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "eCPR/contractorInfo",
+      "name": "contractorInfo",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains information of the contractor or company that is legally responsible for this payroll."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorName",
+      "name": "contractorName",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "56"
+      },
+      "documentation": "This element contains the name of the contractor or company that is legally responsible for this payroll."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorLicense",
+      "name": "contractorLicense",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the license type and license number of the contractor or company that is legally responsible for this payroll."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorLicense/licenseType",
+      "name": "licenseType",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "CSLB|PL|OTHER"
+      },
+      "documentation": "This element contains the license type. CSLB stands for Contractor's State License Board. PL stands for Professional License. If your license type is not one of the two, please fill this field with OTHER."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorLicense/licenseNum",
+      "name": "licenseNum",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "56"
+      },
+      "documentation": "This element contains the license number of previous element type. If the previous element field is OTHER, please enter your license type and license number inside the licenseNum element tag."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorPWCR",
+      "name": "contractorPWCR",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{10}|NA"
+      },
+      "documentation": "This element contains the 10 digit PWCR(Public Works Contractor Registration) number of the contractor or company that is legally reponsible for this payroll. If you have not registered for PWCR, please do so as soon as possible. For more information, visit http://www.dir.ca.gov/Public-Works/PublicWorks.html Please enter NA if you do not have the PWCR number."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorFEIN",
+      "name": "contractorFEIN",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{9}"
+      },
+      "documentation": "This element contains the FEIN(Federal Employer Identification Number) of the contractor or company that is legally responsible for this payroll. This is the 9 digit number that companies with two or more employees are required to have. If you are a sole proprietor or owner operator without a FEIN, please enter your 9 digit social security number. For example: 234556789"
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorAddress",
+      "name": "contractorAddress",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the information of the contractor's address in sequence."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorAddress/street",
+      "name": "street",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "40"
+      }
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorAddress/city",
+      "name": "city",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "25"
+      }
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorAddress/state",
+      "name": "state",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[A-Z]{2}"
+      },
+      "documentation": "This element contains the state of the contractor's address. String format must be two uppercase letters of the state abbreviation. For example: CA"
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorAddress/zip",
+      "name": "zip",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{5}"
+      },
+      "documentation": "This element contains the zip code of the contractor's address. String format must be a 5 digit number. For example: 94612"
+    },
+    {
+      "path": "eCPR/contractorInfo/insuranceNum",
+      "name": "insuranceNum",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "40"
+      },
+      "documentation": "This element contains the insurance information. Please enter either the worker's compensation policy number or the self insurance certificate number. Please enter NA if you are not required to hold workers' compensation insurance or self insurance certificate."
+    },
+    {
+      "path": "eCPR/contractorInfo/contractorEmail",
+      "name": "contractorEmail",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[^@]+@[^\\.]+\\..+",
+        "minLength": "1",
+        "maxLength": "60"
+      },
+      "documentation": "This element contains contractor's email address. String format must match email pattern standards. For example, John@broadway.com"
+    },
+    {
+      "path": "eCPR/projectInfo",
+      "name": "projectInfo",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the project's information in sequence. The required fields to be filled out are contractAgency, awardingBodyID, projectNum, and contractID. The later three pieces of information will be used to search in the PWC-100 database for other element values. If you provide a projectID, it will be used in priority of the search. Please make sure you provide the correct projectID or awardingBodyId, projectNum, and contractID. The other element fields are fixed to be empty."
+    },
+    {
+      "path": "eCPR/projectInfo/awardingBody",
+      "name": "awardingBody",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/contractAgencyID",
+      "name": "contractAgencyID",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": "",
+      "documentation": "This element serves as a placeholder for contractAgencyID. please leave the values empty."
+    },
+    {
+      "path": "eCPR/projectInfo/contractAgency",
+      "name": "contractAgency",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "56"
+      },
+      "documentation": "This element contains the name of the agency or contractor you are in direct contract with. This is the contract With element on the online form."
+    },
+    {
+      "path": "eCPR/projectInfo/projectName",
+      "name": "projectName",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/projectID",
+      "name": "projectID",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{1,18}"
+      },
+      "documentation": "This element contains the DLSE project identification number for a given PWC-100 registered public works project. If you do not have this number, please enter valid awardingBodyId, projectNum, and contractID so the system can properly look up the registered PWC-100 public project."
+    },
+    {
+      "path": "eCPR/projectInfo/awardingBodyID",
+      "name": "awardingBodyID",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "0",
+        "maxLength": "9"
+      },
+      "documentation": "This element contains the identification number of the public entity that is the owner of the project."
+    },
+    {
+      "path": "eCPR/projectInfo/projectNum",
+      "name": "projectNum",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "0",
+        "maxLength": "50"
+      },
+      "documentation": "This element contains the project number given by the awardingBody on a specific project."
+    },
+    {
+      "path": "eCPR/projectInfo/contractID",
+      "name": "contractID",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "0",
+        "maxLength": "25"
+      },
+      "documentation": "This element contains the contract identification number given by the awardingBody on a specific project."
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation",
+      "name": "projectLocation",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element serves as a placeholder for project location. Please leave the values empty."
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation/description",
+      "name": "description",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation/street",
+      "name": "street",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation/city",
+      "name": "city",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation/county",
+      "name": "county",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation/state",
+      "name": "state",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/projectInfo/projectLocation/zip",
+      "name": "zip",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": ""
+    },
+    {
+      "path": "eCPR/payrollInfo",
+      "name": "payrollInfo",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains information on employees and payrolls in sequence."
+    },
+    {
+      "path": "eCPR/payrollInfo/statementOfNP",
+      "name": "statementOfNP",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "true|false"
+      },
+      "documentation": "This element contains information on Statement of Non-Performance. Please enter true if this is a statement of non performance, and false if it is not. If this is a statement of non performance, please do not include any employee elements and vice versa."
+    },
+    {
+      "path": "eCPR/payrollInfo/payrollNum",
+      "name": "payrollNum",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": "",
+      "documentation": "This element contains the payroll number. This number refers to the number in sequence of the payroll submitted by a contractor on a project on a week ending date. It is auto incremented by the system."
+    },
+    {
+      "path": "eCPR/payrollInfo/amendmentNum",
+      "name": "amendmentNum",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "fixed": "",
+      "documentation": "This element contains the amendment number. This number refers to the number in sequence of the payroll submitted by a contractor on a project on a same week ending date. It is auto incremented by the system."
+    },
+    {
+      "path": "eCPR/payrollInfo/forWeekEnding",
+      "name": "forWeekEnding",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:date",
+      "documentation": "This element contains the ending date of the payroll week for this public project. A payroll week is defined as a seven-day work period. Date format is yyyy-mm-dd. For example: 2014-12-25"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees",
+      "name": "employees",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee",
+      "name": "employee",
+      "minOccurs": "0",
+      "maxOccurs": "500",
+      "documentation": "This element contains this worker's information in sequence. If this is a statement of non performance, please do not include this element. In that case, your payrollInfo element should only contain the statementOfNP element value of true, payrollNum element, forWeekEnding element and an empty employees tag.",
+      "attributes": [
+        {
+          "name": "id",
+          "use": "optional",
+          "type": "xs:string"
+        }
+      ]
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/name",
+      "name": "name",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains this worker's name. Please include an attribute id=\"SSN::NAME\" where SSN must match the ssn of given worker, and NAME = name of worker in uppercase"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/address",
+      "name": "address",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the address of this worker in sequence."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/address/street",
+      "name": "street",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "40"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/address/city",
+      "name": "city",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "25"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/address/state",
+      "name": "state",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[A-Z]{2}"
+      },
+      "documentation": "This element contains the state of this worker's address. String format must be two uppercase letters of the state abbreviation. For example: CA"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/address/zip",
+      "name": "zip",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{5}"
+      },
+      "documentation": "This element contains the zip code of this worker's address. String format must be a 5 digit number. For example: 94612"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/ssn",
+      "name": "ssn",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{9}"
+      },
+      "documentation": "This element contains this worker's social security number. String format must be a 9 digit number, For example: 123456789 and must match name id attribute SSN of \"SSN::NAME\""
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/numWithholdingExemp",
+      "name": "numWithholdingExemp",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "pattern": "[0-9]{1,2}"
+      },
+      "documentation": "This element contains number of withholding exemption of this worker."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/workClass",
+      "name": "workClass",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "300"
+      },
+      "documentation": "This element contains this worker's classification."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll",
+      "name": "payroll",
+      "minOccurs": "1",
+      "maxOccurs": "1"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrsWorkedEachDay",
+      "name": "hrsWorkedEachDay",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains this worker's work hours each day for the week in sequence. Each subsequent element contains straightTime, overtime and doubletime hours. The week shall end on the date speficified on the forWeekEnding element, and day id=\"1\" to day id=\"7\" are day one to day seven of such work week respectively. Please enter hour values in decimal format upto 2 decimal places. For example: 8 hours = 8, 8.0, or 8.00 7 hours and 15 mins = 7.25 and 6 hours 40 = 6.67"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrsWorkedEachDay/day",
+      "name": "day",
+      "minOccurs": "7",
+      "maxOccurs": "7",
+      "attributes": [
+        {
+          "name": "id",
+          "use": "optional",
+          "type": "xs:integer"
+        }
+      ]
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrsWorkedEachDay/day/date",
+      "name": "date",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:date"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrsWorkedEachDay/day/straightTime",
+      "name": "straightTime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrsWorkedEachDay/day/overtime",
+      "name": "overtime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrsWorkedEachDay/day/doubletime",
+      "name": "doubletime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/totHrs",
+      "name": "totHrs",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the total hours added up for the week from straighTime, overtime and doubletime element respectively. Please enter hour values in decimal format if necessary upto 2 decimal places. For example: 37 hours and 15 mins = 37.25 and 36 hours and 40mins = 36.67"
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/totHrs/totHrsStraightTime",
+      "name": "totHrsStraightTime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "1000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/totHrs/totHrsOvertime",
+      "name": "totHrsOvertime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "1000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/totHrs/totHrsDoubletime",
+      "name": "totHrsDoubletime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "1000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrlyPayRate",
+      "name": "hrlyPayRate",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the hourly payrate of each category. Please enter the value in U.S. dollars. For example: 17.25 is the payrate of 17.25 U.S. dollars per hour."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrlyPayRate/hrlyPayRateStraightTime",
+      "name": "hrlyPayRateStraightTime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "10000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrlyPayRate/hrlyPayRateOvertime",
+      "name": "hrlyPayRateOvertime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "10000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/hrlyPayRate/hrlyPayRateDoubletime",
+      "name": "hrlyPayRateDoubletime",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "10000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/grossAmountEarned",
+      "name": "grossAmountEarned",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the gross amount earned by this worker under your contract for this public project, and all work under your contract. The element allWork is for when this worker has worked on other projects in the same week. Those other projects may be other public works projects or private projects. So, for example, if this worker worked on the public project covered in this payroll for four days (8 hours per day) of the week and on another project for one day (8 hours), at a pay rate of $30/hour for both jobs, the gross amount earned for thisProject would be $960 (32 x $30) and for allWork would be $960 + 8 x $30 = $1200. If this worker has only work for you under this project. The amount earned entered for thisProject should equal to the amount in allWork. Please enter the value in U.S. dollars. For example: 5000.00 is the gross amount of Five Thousand U.S. dollars."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/grossAmountEarned/thisProject",
+      "name": "thisProject",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/grossAmountEarned/allWork",
+      "name": "allWork",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay",
+      "name": "deductionsContribPay",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "documentation": "This element contains the standard federal and state payroll reporting categories of deductions, contributions, and payments. Please refer to accounting if you have questions on each category."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/fedTax",
+      "name": "fedTax",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/FICA",
+      "name": "FICA",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/stateTax",
+      "name": "stateTax",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/SDI",
+      "name": "SDI",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/vacationHoliday",
+      "name": "vacationHoliday",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/healthWelfare",
+      "name": "healthWelfare",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/pension",
+      "name": "pension",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/training",
+      "name": "training",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/fundAdmin",
+      "name": "fundAdmin",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/dues",
+      "name": "dues",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/travelSubs",
+      "name": "travelSubs",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/savings",
+      "name": "savings",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/other",
+      "name": "other",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/total",
+      "name": "total",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      }
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/deductionsContribPay/notes",
+      "name": "notes",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "0",
+        "maxLength": "256"
+      },
+      "documentation": "this element contains notes about this employee's payroll. Details about what deductions, payments and contributions are being paid to this worker."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/netWagePaidWeek",
+      "name": "netWagePaidWeek",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:decimal",
+      "facets": {
+        "maxExclusive": "100000000",
+        "fractionDigits": "2"
+      },
+      "documentation": "This element contains the U.S. dollar amount paid to the worker this week."
+    },
+    {
+      "path": "eCPR/payrollInfo/employees/employee/payroll/checkNum",
+      "name": "checkNum",
+      "minOccurs": "1",
+      "maxOccurs": "1",
+      "type": "xs:string",
+      "facets": {
+        "minLength": "1",
+        "maxLength": "20"
+      },
+      "documentation": "This element contains the check number given to this worker. If paid by cash, please enter CASH in this field. If paid by direct deposit, please enter the transaction number."
+    }
+  ],
+  "elementCount": 83
+}

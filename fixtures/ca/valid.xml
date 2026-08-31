@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Synthetic fixture. Structure follows DIR's published CPR schema and the eCPR XML
+     Guidelines; every value is invented. Week ending Friday 28 August 2026. -->
+<CPR:eCPR xmlns:CPR="http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd">
+  <CPR:contractorInfo>
+    <CPR:contractorName>Example Mechanical Inc</CPR:contractorName>
+    <CPR:contractorLicense>
+      <CPR:licenseType>CSLB</CPR:licenseType>
+      <CPR:licenseNum>0000001</CPR:licenseNum>
+    </CPR:contractorLicense>
+    <CPR:contractorPWCR>1000000001</CPR:contractorPWCR>
+    <CPR:contractorFEIN>123456789</CPR:contractorFEIN>
+    <CPR:contractorAddress>
+      <CPR:street>1 Example Way</CPR:street>
+      <CPR:city>Sacramento</CPR:city>
+      <CPR:state>CA</CPR:state>
+      <CPR:zip>95814</CPR:zip>
+    </CPR:contractorAddress>
+    <CPR:insuranceNum>INS-0000001</CPR:insuranceNum>
+    <CPR:contractorEmail>payroll@example.com</CPR:contractorEmail>
+  </CPR:contractorInfo>
+  <CPR:projectInfo>
+    <CPR:awardingBody></CPR:awardingBody>
+    <CPR:contractAgencyID></CPR:contractAgencyID>
+    <CPR:contractAgency>CA-DIR</CPR:contractAgency>
+    <CPR:projectName></CPR:projectName>
+    <CPR:projectID>9</CPR:projectID>
+    <CPR:awardingBodyID></CPR:awardingBodyID>
+    <CPR:projectNum></CPR:projectNum>
+    <CPR:contractID></CPR:contractID>
+    <CPR:projectLocation>
+      <CPR:description></CPR:description>
+      <CPR:street></CPR:street>
+      <CPR:city></CPR:city>
+      <CPR:county></CPR:county>
+      <CPR:state></CPR:state>
+      <CPR:zip></CPR:zip>
+    </CPR:projectLocation>
+  </CPR:projectInfo>
+  <CPR:payrollInfo>
+    <CPR:statementOfNP>false</CPR:statementOfNP>
+    <CPR:payrollNum></CPR:payrollNum>
+    <CPR:amendmentNum></CPR:amendmentNum>
+    <CPR:forWeekEnding>2026-08-28</CPR:forWeekEnding>
+    <CPR:employees>
+      <CPR:employee>
+        <CPR:name id="111223333::JANE EXAMPLE">Jane Example</CPR:name>
+        <CPR:address>
+          <CPR:street>2 Example Street</CPR:street>
+          <CPR:city>Sacramento</CPR:city>
+          <CPR:state>CA</CPR:state>
+          <CPR:zip>95814</CPR:zip>
+        </CPR:address>
+        <CPR:ssn>111223333</CPR:ssn>
+        <CPR:numWithholdingExemp>2</CPR:numWithholdingExemp>
+        <CPR:workClass>Carrier Driver</CPR:workClass>
+        <CPR:payroll>
+          <CPR:hrsWorkedEachDay>
+            <CPR:day id="1"><CPR:date>2026-08-22</CPR:date><CPR:straightTime>0.0</CPR:straightTime><CPR:overtime>0.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+            <CPR:day id="2"><CPR:date>2026-08-23</CPR:date><CPR:straightTime>0.0</CPR:straightTime><CPR:overtime>0.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+            <CPR:day id="3"><CPR:date>2026-08-24</CPR:date><CPR:straightTime>8.0</CPR:straightTime><CPR:overtime>1.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+            <CPR:day id="4"><CPR:date>2026-08-25</CPR:date><CPR:straightTime>8.0</CPR:straightTime><CPR:overtime>0.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+            <CPR:day id="5"><CPR:date>2026-08-26</CPR:date><CPR:straightTime>8.0</CPR:straightTime><CPR:overtime>0.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+            <CPR:day id="6"><CPR:date>2026-08-27</CPR:date><CPR:straightTime>8.0</CPR:straightTime><CPR:overtime>0.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+            <CPR:day id="7"><CPR:date>2026-08-28</CPR:date><CPR:straightTime>8.0</CPR:straightTime><CPR:overtime>0.0</CPR:overtime><CPR:doubletime>0.0</CPR:doubletime></CPR:day>
+          </CPR:hrsWorkedEachDay>
+          <CPR:totHrs>
+            <CPR:totHrsStraightTime>40.0</CPR:totHrsStraightTime>
+            <CPR:totHrsOvertime>1.0</CPR:totHrsOvertime>
+            <CPR:totHrsDoubletime>0.0</CPR:totHrsDoubletime>
+          </CPR:totHrs>
+          <CPR:hrlyPayRate>
+            <CPR:hrlyPayRateStraightTime>30.00</CPR:hrlyPayRateStraightTime>
+            <CPR:hrlyPayRateOvertime>45.00</CPR:hrlyPayRateOvertime>
+            <CPR:hrlyPayRateDoubletime>60.00</CPR:hrlyPayRateDoubletime>
+          </CPR:hrlyPayRate>
+          <CPR:grossAmountEarned>
+            <CPR:thisProject>1245.00</CPR:thisProject>
+            <CPR:allWork>1245.00</CPR:allWork>
+          </CPR:grossAmountEarned>
+          <CPR:deductionsContribPay>
+            <CPR:fedTax>150.00</CPR:fedTax>
+            <CPR:FICA>95.24</CPR:FICA>
+            <CPR:stateTax>40.00</CPR:stateTax>
+            <CPR:SDI>13.70</CPR:SDI>
+            <CPR:vacationHoliday>0.00</CPR:vacationHoliday>
+            <CPR:healthWelfare>0.00</CPR:healthWelfare>
+            <CPR:pension>0.00</CPR:pension>
+            <CPR:training>0.00</CPR:training>
+            <CPR:fundAdmin>0.00</CPR:fundAdmin>
+            <CPR:dues>0.00</CPR:dues>
+            <CPR:travelSubs>0.00</CPR:travelSubs>
+            <CPR:savings>0.00</CPR:savings>
+            <CPR:other>0.00</CPR:other>
+            <CPR:total>298.94</CPR:total>
+            <CPR:notes></CPR:notes>
+          </CPR:deductionsContribPay>
+          <CPR:netWagePaidWeek>946.06</CPR:netWagePaidWeek>
+          <CPR:checkNum>1001</CPR:checkNum>
+        </CPR:payroll>
+      </CPR:employee>
+    </CPR:employees>
+  </CPR:payrollInfo>
+</CPR:eCPR>

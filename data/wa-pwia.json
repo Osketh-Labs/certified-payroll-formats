@@ -1,0 +1,54 @@
+{
+  "id": "wa-pwia",
+  "jurisdiction": "us-wa",
+  "name": "Washington L&I PWIA XML payroll upload",
+  "publisher": "Washington State Department of Labor & Industries",
+  "reviewed": "2026-08-31",
+  "schema": {
+    "url": null,
+    "note": "The XML schema is published inside the PWIA system in My L&I — the upload guide instructs filers to right-click the XML Schema file in PWIA and save it locally. There is no public URL, so this file records only what the published upload guide states. Element names below are quoted from the guide; the file carries no extracted element tree because the schema itself could not be read without a portal account.",
+    "rootElement": null,
+    "version": null
+  },
+  "guide": {"url": "https://lni.wa.gov/licensing-permits/_docs/xml%20payroll%20guide.pdf", "lastUpdated": "2020-01"},
+  "statutoryRecordContents": {
+    "note": "RCW 39.12.120 and the guide set out what a certified payroll report must show.",
+    "fields": ["full name", "address", "Social Security number", "trade or occupation", "straight-time rate", "hourly rate of usual benefits", "overtime hours worked each date and week", "ten hour workday (4-10) agreement", "actual rate of wages paid"],
+    "sources": ["wa-rcw-39.12.120", "wa-lni-xml-guide", "wa-wac-296-127-320"]
+  },
+  "rules": [
+    {"id": "wa.caseSensitive", "severity": "error", "statement": "Validation is case sensitive. County must be in Title Case and trade codes must be in ALL CAPS.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.classificationsMustMatch", "severity": "error", "statement": "Classifications and occupations must match what is shown in the wage lookup tools. Classifications and wage rates vary per project and are based on either the Bid Due Date or the Award Date, whichever is used as the effective date.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.deprecatedElements", "severity": "error", "statement": "Seven elements remain in the schema but are being removed and must be null if included: amendedFlag, amendedDate, amendReason, WageID, apprenticePgmOccpnID, apprenticePgmName, apprenticePgmOccpnStepCalcID.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.requiredNotNull", "severity": "error", "statement": "All required fields cannot be null and must have a value.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.twoDecimalPlaces", "severity": "error", "statement": "All numerical data needs no more than two decimal places. Acceptable: 50, 8.00, 7.5. Not acceptable: 50.235, 8.000, 7.563.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.otherDeduction", "severity": "error", "statement": "Each additional deduction is a further otherDeduction element. When present, deductionName must have data and deductionHourlyAmt must be greater than zero.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.tradeBenefit", "severity": "error", "statement": "Each additional fringe or usual benefit is a further tradeBenefit element. When present, benefitHourlyName must have data and benefitHourlyAmt must be greater than zero.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.tradeHoursWage", "severity": "error", "statement": "Each additional trade, classification or wage rate the employee had for the week is a further tradeHoursWage element plus its corresponding fields.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.trade", "severity": "error", "statement": "trade is required and must contain the correct trade code from L&I's published list.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.jobClass", "severity": "error", "statement": "jobClass is required unless apprenticeFlg is true, in which case it may be null.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.apprenticeFlg", "severity": "error", "statement": "apprenticeFlg is required and must be true or false. When true, apprenticeID, apprenticeState, apprenticeOccpnName, apprenticeStepName, apprenticeStepBeginHours and apprenticeStepEndHours are all required. When false those fields may be removed, but if kept, apprenticeStepBeginHours and apprenticeStepEndHours must both equal 0 and cannot be blank or null.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.apprenticeState", "severity": "error", "statement": "apprenticeState must be WA, OR, MT or AK.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.apprenticeStepHours.whole", "severity": "error", "statement": "apprenticeStepBeginHours and apprenticeStepEndHours must be whole numbers and cannot contain decimals.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.ssnUnique", "severity": "error", "statement": "The Social Security number supplied for each employee must be a unique number within the file.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.weekEndingConsistent", "severity": "error", "statement": "The payroll week ending date must fall on the same day of the week as previously submitted reports for the same project, and a file may not contain duplicate weeks.", "sources": ["wa-lni-xml-guide"]},
+    {"id": "wa.amendmentReplaces", "severity": "advisory", "statement": "The system identifies a duplicate week and prompts for confirmation that the upload is an amendment. An amendment completely replaces the previously filed week.", "sources": ["wa-lni-xml-guide"]}
+  ],
+  "optionalDemographics": {
+    "note": "Three employee fields are optional but are checked for valid values if provided.",
+    "fields": [
+      {"name": "gender", "values": ["F", "M", "?"]},
+      {"name": "race, ethnicity or culture", "values": ["Prefer not to answer", "American Indian/Alaskan Aleut", "Asian", "Black or African American", "Hispanic or Latino", "Native Hawaiian or other Pacific Islander", "White or Caucasian", "Other"]},
+      {"name": "United States veteran", "values": ["Y", "N", "?"]}
+    ],
+    "sources": ["wa-lni-xml-guide"]
+  },
+  "uploadValidationSteps": [
+    {"step": 1, "name": "XML File", "checks": ["matches the schema", "is a valid .xml file", "the filer has access to file certified payroll for the intent/project"]},
+    {"step": 2, "name": "Payroll Weeks", "checks": ["the week ending date is the same day of the week as previously submitted reports for the project", "no duplicate weeks within the file", "no drafts or previously submitted reports for the same week"]},
+    {"step": 3, "name": "Employee Information", "checks": ["first name, last name, Social Security number, address, city, state and zip are present", "the Social Security number is unique", "optional demographic values, if provided, are valid"]},
+    {"step": 4, "name": "Project Trades and Classifications", "checks": ["trades and classifications match the Prevailing Wage trades and classifications, with an interactive match step where they do not"]},
+    {"step": 5, "name": "Employee Wage Rate(s)", "optional": true, "checks": ["total wages and benefits for each employee meet the minimum prevailing wage rate for their trade and classification on the project"]}
+  ],
+  "sources": ["wa-lni-xml-guide", "wa-rcw-39.12.120", "wa-lni-pw"]
+}

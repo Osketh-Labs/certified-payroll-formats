@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, to notice when an agency revises a schema without announcing it.
+    - cron: '0 7 * * 1'
+
+jobs:
+  javascript:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test
+        working-directory: js
+
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s tests -v
+        working-directory: py
+        env:
+          PYTHONPATH: src
+
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # The packaged copies of data/ must be reproducible from the root, and each
+      # package must work from its own copy rather than the repository layout.
+      - run: python3 tools/sync_packages.py
+      - run: git diff --exit-code data/
+      - run: npm test
+        working-directory: js
+      - run: python -m unittest discover -s tests
+        working-directory: py
+        env:
+          PYTHONPATH: src
+
+  schemas:
+    # Fetches the published XSDs and fails if either agency has changed one.
+    # Informational: a failure here means the dataset needs re-reviewing, not that
+    # anything is broken.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python3 tools/build_formats.py
+      - run: git diff --exit-code data/ca-ecpr.json data/ny-certpayroll.json

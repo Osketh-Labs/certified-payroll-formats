@@ -1,0 +1,28 @@
+{
+  "name": "certified-payroll-formats",
+  "version": "0.1.0",
+  "description": "Machine-readable reference data and zero-dependency validators for US certified payroll filing: WH-347, California eCPR XML, New York bulk upload XML, Washington PWIA.",
+  "keywords": [
+    "certified-payroll", "prevailing-wage", "davis-bacon", "wh-347", "ecpr",
+    "payroll", "xml", "validator", "compliance", "public-works"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./wh347": "./src/wh347.js",
+    "./xml": "./src/xml.js",
+    "./data": "./src/data.js"
+  },
+  "bin": { "certified-payroll": "./src/cli.js" },
+  "files": ["src", "data"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "prepack": "python3 ../tools/sync_packages.py"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/osketh/certified-payroll-formats.git" },
+  "homepage": "https://github.com/osketh/certified-payroll-formats#readme",
+  "dependencies": {}
+}

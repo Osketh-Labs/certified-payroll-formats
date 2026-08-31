@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic fixture carrying deliberate faults, one per documented rule. See
+     fixtures/README.md for the findings this file is expected to produce. -->
+<ProjectRollup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="NYDOL_CertPayroll.xsd">
+  <prcNumber>1092381092</prcNumber>
+  <weekEndingDate>2026-08-02</weekEndingDate>
+  <employeeWorkWeeks>
+    <employeeWorkWeek>
+      <employee>
+        <firstName>Steven</firstName>
+        <middleName>Michael</middleName>
+        <lastName>Bradley</lastName>
+        <dateOfBirth>1984-02-09</dateOfBirth>
+        <ssnLast4>0323</ssnLast4>
+        <nysRegisteredApprentice>false</nysRegisteredApprentice>
+        <address>
+          <address1>123 Example St</address1>
+          <city>Albany</city>
+          <state>NY</state>
+          <postalCode>12207</postalCode>
+          <country>United States</country>
+        </address>
+      </employee>
+      <deductionsGrossEarnings>1420.00</deductionsGrossEarnings>
+      <netWages>1220.00</netWages>
+      <workWeeks>
+        <workWeek>
+          <workCategory>Asbestos Worker</workCategory>
+          <stHourlyRate>35.50</stHourlyRate>
+          <otHourlyRate>53.25</otHourlyRate>
+          <days>
+            <day><day>2026-07-20</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-28</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-29</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-30</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-31</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>2.00</overTimeHours></day>
+          </days>
+        </workWeek>
+      </workWeeks>
+      <deductions>
+        <deduction><type>Federal Tax</type><amount>12000.00</amount></deduction>
+        <deduction><type>State Tax</type><amount>50.00</amount></deduction>
+      </deductions>
+      <supplementalPayments>
+        <supplementalPayment>
+          <type>Health/Welfare</type>
+          <workCategory>Asbestos Worker</workCategory>
+          <explanation>Health insurance contribution</explanation>
+          <standardHourlyRate>5.00</standardHourlyRate>
+          <overtimeHourlyRate>7.50</overtimeHourlyRate>
+        </supplementalPayment>
+      </supplementalPayments>
+    </employeeWorkWeek>
+    <employeeWorkWeek>
+      <employee>
+        <firstName>Emily</firstName>
+        <lastName>Johnson</lastName>
+        <nysRegisteredApprentice>Y</nysRegisteredApprentice>
+        <address>
+          <address1>124 Example St</address1>
+          <city>Albany</city>
+          <state>New York</state>
+          <postalCode>12207</postalCode>
+          <postalCodeExt>0002</postalCodeExt>
+        </address>
+      </employee>
+      <deductionsGrossEarnings>1000.00</deductionsGrossEarnings>
+      <netWages>800.00</netWages>
+      <workWeeks>
+        <workWeek>
+          <workCategory>Boiler Maker - Building</workCategory>
+          <stHourlyRate>25.00</stHourlyRate>
+          <otHourlyRate>37.50</otHourlyRate>
+          <days>
+            <day><day>2026-07-27</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-28</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-29</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-30</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+            <day><day>2026-07-31</day><standardTimeHours>8.00</standardTimeHours><overTimeHours>0.00</overTimeHours></day>
+          </days>
+        </workWeek>
+      </workWeeks>
+      <deductions>
+        <deduction><type>Federal Tax</type><amount>150.00</amount></deduction>
+        <deduction><type>State Tax</type><amount>50.00</amount></deduction>
+      </deductions>
+      <supplementalPayments>
+        <supplementalPayment>
+          <type>Pension</type>
+          <workCategory>Boiler Maker - Building</workCategory>
+          <standardHourlyRate>4.00</standardHourlyRate>
+          <overtimeHourlyRate>6.00</overtimeHourlyRate>
+        </supplementalPayment>
+      </supplementalPayments>
+    </employeeWorkWeek>
+  </employeeWorkWeeks>
+</ProjectRollup>

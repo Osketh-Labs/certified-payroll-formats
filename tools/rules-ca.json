@@ -1,0 +1,256 @@
+{
+  "id": "ca-ecpr",
+  "jurisdiction": "us-ca",
+  "name": "California eCPR XML",
+  "publisher": "California Department of Industrial Relations",
+  "schema": {
+    "url": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd",
+    "targetNamespace": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd",
+    "elementFormDefault": "qualified",
+    "rootElement": "eCPR",
+    "version": "1.3",
+    "versionNote": "Taken from the comment at the top of the schema: \"XML SCHEMA for electronic California Payroll Records Version 1.3\". The accompanying guideline PDF is separately versioned 1.10 and its release notes are headed 1.5; the two numbering schemes do not line up.",
+    "conventionalPrefix": "CPR"
+  },
+  "guide": {
+    "url": "https://www.dir.ca.gov/Public-Works/CPR/eCPRXMLGuideline.pdf",
+    "version": "1.10",
+    "date": "2016-01"
+  },
+  "sample": {
+    "url": "https://www.dir.ca.gov/Public-Works/CPR/CPRSample.xml"
+  },
+  "reviewed": "2026-08-31",
+  "fileNaming": {
+    "pattern": "[last 4 digits of FEIN]_[Project ID]_[week ending date].xml",
+    "example": "6789_DIR001_010915.xml",
+    "regex": "^[0-9]{4}_[^_]+_[0-9]{6}\\.xml$",
+    "note": "The guideline's worked example uses a six-digit MMDDYY week ending date and a Project ID of DIR001, while the schema constrains projectID to [0-9]{1,18} and the official sample carries the value 9. Treat the filename check as advisory.",
+    "sources": [
+      "ca-dir-guideline"
+    ]
+  },
+  "rules": [
+    {
+      "id": "ca.root.namespace",
+      "severity": "error",
+      "statement": "The document element must be eCPR in the namespace http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.licenseType.enum",
+      "severity": "error",
+      "statement": "licenseType must be CSLB, PL or OTHER.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.pwcr.format",
+      "severity": "error",
+      "statement": "contractorPWCR must be a 10-digit public works contractor registration number, or the literal NA if the contractor has not registered.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.fein.format",
+      "severity": "error",
+      "statement": "contractorFEIN must be exactly nine digits, with no hyphen.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.email.format",
+      "severity": "error",
+      "statement": "contractorEmail must match the schema's own pattern [^@]+@[^\\.]+\\..+ and be at most 60 characters.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.projectInfo.fixedEmpty",
+      "severity": "error",
+      "statement": "awardingBody, contractAgencyID, projectName and every child of projectLocation are declared fixed=\"\" \u2014 the elements must be present and their content must be empty.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.projectInfo.mandatory",
+      "severity": "error",
+      "statement": "Under projectInfo the fields to fill in are contractAgency and projectID. The guideline states all other fields must be empty; the schema's own projectID annotation offers an alternative, saying that a filer without a projectID may instead supply valid awardingBodyID, projectNum and contractID so the system can look up the registered PWC-100 project. Those three are not fixed=\"\", so the schema permits that path.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-guideline",
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.payrollNum.empty",
+      "severity": "error",
+      "statement": "payrollNum and amendmentNum are assigned by the eCPR system and are declared fixed=\"\" \u2014 send them empty.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.forWeekEnding.format",
+      "severity": "error",
+      "statement": "forWeekEnding is an xs:date in yyyy-mm-dd form.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.statementOfNP.enum",
+      "severity": "error",
+      "statement": "statementOfNP must be the literal true or false.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.statementOfNP.noEmployees",
+      "severity": "error",
+      "statement": "When statementOfNP is true the payroll week is a statement of non-performance: the schema's annotation on employee says payrollInfo should then carry only statementOfNP true, payrollNum, forWeekEnding and an empty employees tag. When it is false at least one employee is expected.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.employees.max",
+      "severity": "error",
+      "statement": "At most 500 employee elements per file. The cap is in the schema (maxOccurs=\"500\") but is not stated in the guideline.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.name.idAttribute",
+      "severity": "error",
+      "statement": "Each employee name element carries an id attribute of the form SSN::NAME. The schema's own annotation states that SSN must match the ssn of the given worker and NAME is the worker's name in uppercase; the guideline repeats the upper-case requirement.",
+      "expressibleInXsd": false,
+      "xsdNote": "The schema declares id as an optional xs:string with no pattern, so the format is documented but not enforced.",
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.name.idMatchesSsn",
+      "severity": "error",
+      "statement": "The SSN portion of the name id attribute must match the employee's ssn element, per the schema's annotation on the name element.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.ssn.format",
+      "severity": "error",
+      "statement": "ssn must be exactly nine digits. Unlike the federal form, California requires the full number; DIR redacts it from the public search under Labor Code \u00a7 1776(e).",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-lc-1776"
+      ]
+    },
+    {
+      "id": "ca.days.exactlySeven",
+      "severity": "error",
+      "statement": "hrsWorkedEachDay must contain exactly seven day elements.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.days.consecutive",
+      "severity": "warning",
+      "statement": "The seven day dates should be distinct and consecutive, ending on forWeekEnding. The schema constrains neither the ordering nor the relationship to the week ending date.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.hours.range",
+      "severity": "error",
+      "statement": "Per-day straightTime, overtime and doubletime are decimals below 100 with at most two fraction digits; weekly totals are decimals below 1000.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.totals.matchDays",
+      "severity": "warning",
+      "statement": "totHrsStraightTime, totHrsOvertime and totHrsDoubletime should equal the sums of the corresponding per-day values. The schema cannot express the relationship.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.deductions.totalMatchesItems",
+      "severity": "warning",
+      "statement": "deductionsContribPay/total should equal the sum of the itemised elements that precede it (fedTax, FICA, stateTax, SDI, vacationHoliday, healthWelfare, pension, training, fundAdmin, dues, travelSubs, savings, other). This is inferred from the element naming; DIR does not state the arithmetic.",
+      "expressibleInXsd": false,
+      "inferred": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.gross.projectNotAboveAll",
+      "severity": "warning",
+      "statement": "grossAmountEarned/thisProject should not exceed grossAmountEarned/allWork. Inferred from the element definitions; DIR does not state the relationship.",
+      "expressibleInXsd": false,
+      "inferred": true,
+      "sources": [
+        "ca-dir-xsd"
+      ]
+    },
+    {
+      "id": "ca.notes.presentMayBeEmpty",
+      "severity": "error",
+      "statement": "The notes element is optional in content but not in presence: the guideline calls it not mandatory, while the schema declares it with the default minOccurs of 1 and a minLength of 0. Send the element with empty content rather than omitting it.",
+      "expressibleInXsd": true,
+      "sources": [
+        "ca-dir-xsd",
+        "ca-dir-guideline"
+      ]
+    },
+    {
+      "id": "ca.filename.convention",
+      "severity": "advisory",
+      "statement": "The submitted file should be named [last 4 of FEIN]_[Project ID]_[week ending date].xml and must end in .xml.",
+      "expressibleInXsd": false,
+      "sources": [
+        "ca-dir-guideline"
+      ]
+    }
+  ]
+}

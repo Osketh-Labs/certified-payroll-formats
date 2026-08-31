@@ -1,0 +1,139 @@
+{
+  "$comment": "Places where an official schema and its own official documentation disagree, or where a stated rule cannot be expressed in the schema that is supposed to enforce it. Each entry records both positions, what the official sample file actually does, and which one a filer should follow. These are the failures that pass XSD validation and are rejected by the portal — or the reverse.",
+  "reviewed": "2026-08-31",
+  "conflicts": [
+    {
+      "id": "ny-apprentice-boolean-vs-yn",
+      "format": "ny-certpayroll",
+      "element": "nysRegisteredApprentice",
+      "kind": "schema-vs-its-own-annotation",
+      "schemaSays": {"declaration": "type=\"xs:boolean\"", "source": "ny-dol-xsd"},
+      "documentationSays": {"quote": "must be either \"Y\" for Yes or \"N\" for No", "location": "the element's own xs:documentation string", "source": "ny-dol-xsd"},
+      "sampleDoes": {"value": "true", "source": "ny-dol-sample"},
+      "resolution": "Send true or false. Y and N are not valid xs:boolean lexical values and would fail schema validation.",
+      "impact": "A generator written from the annotation produces a file that fails validation on every employee row."
+    },
+    {
+      "id": "ny-state-abbreviation-vs-full-name",
+      "format": "ny-certpayroll",
+      "element": "address/state",
+      "kind": "schema-vs-its-own-annotation",
+      "schemaSays": {"declaration": "xs:string with minLength 1 and maxLength 50 — no pattern", "source": "ny-dol-xsd"},
+      "documentationSays": {"quote": "must be two uppercase letters of the state abbreviation. For example: CA", "location": "the element's own xs:documentation string", "source": "ny-dol-xsd"},
+      "sampleDoes": {"value": "New York", "source": "ny-dol-sample"},
+      "guideSays": {"summary": "Invalid state abbreviations are listed among the upload errors; full names are required.", "source": "ny-dol-buf"},
+      "resolution": "Send the full state name. The two-letter abbreviation the annotation asks for is what the portal rejects.",
+      "impact": "Schema-valid either way. The abbreviation fails at upload, after the file has already passed local XSD validation."
+    },
+    {
+      "id": "ny-exactly-one-identifier",
+      "format": "ny-certpayroll",
+      "element": "employee/ssnLast4, employee/dateOfBirth",
+      "kind": "rule-not-expressible-in-schema",
+      "schemaSays": {"declaration": "both declared minOccurs=\"0\" and independent — neither, either or both validate", "source": "ny-dol-xsd"},
+      "guideSays": {"quote": "a value in either dateOfBirth or ssnLast4; you cannot include a value in both", "source": "ny-dol-buf"},
+      "resolution": "Supply exactly one. An xs:choice would have expressed this; the schema does not use one.",
+      "impact": "The most common schema-valid, portal-invalid file. Nothing local catches it unless you check for it yourself."
+    },
+    {
+      "id": "ny-country-required-vs-optional",
+      "format": "ny-certpayroll",
+      "element": "address/country",
+      "kind": "schema-vs-agency-guide",
+      "schemaSays": {"declaration": "no minOccurs attribute, so it defaults to 1 — required", "source": "ny-dol-xsd"},
+      "guideSays": {"summary": "lists country among the optional elements", "source": "ny-dol-buf"},
+      "sampleDoes": {"value": "United States", "source": "ny-dol-sample"},
+      "resolution": "Send it. Omitting it fails schema validation regardless of what the guide says.",
+      "impact": "Omission fails at step 1 of validation."
+    },
+    {
+      "id": "ny-ssnlast4-dead-annotation",
+      "format": "ny-certpayroll",
+      "element": "employee/ssnLast4",
+      "kind": "annotation-describes-nothing",
+      "documentationSays": {"quote": "must match name id attribute SSN of \"SSN::NAME\"", "location": "the element's own xs:documentation string", "source": "ny-dol-xsd"},
+      "schemaSays": {"declaration": "version 2.0 has no name element and no id attribute anywhere; names are firstName, middleName and lastName", "source": "ny-dol-xsd"},
+      "resolution": "Ignore the sentence. It describes a structure that does not exist in this format — though it is precisely the convention California's schema does use.",
+      "impact": "None on validity. It sends implementers looking for a field that is not there."
+    },
+    {
+      "id": "ny-nested-day-element",
+      "format": "ny-certpayroll",
+      "element": "workWeek/days/day/day",
+      "kind": "structural-trap",
+      "schemaSays": {"declaration": "a day element whose first child is also named day and holds the xs:date", "source": "ny-dol-xsd"},
+      "resolution": "Legal XML, and the official sample does exactly this. Note it before writing XPath or generating bindings.",
+      "impact": "Naive code-generation and XPath expressions silently address the wrong node."
+    },
+    {
+      "id": "ny-deduction-amount-four-digit-cap",
+      "format": "ny-certpayroll",
+      "element": "deductions/deduction/amount",
+      "kind": "undocumented-constraint",
+      "schemaSays": {"declaration": "xs:string restricted to ([0-9]{1,4})(\\.[0-9]{1,2})? — no more than four digits before the decimal point", "source": "ny-dol-xsd"},
+      "resolution": "No single deduction may be 10000.00 or more, and the value carries no sign. Split or aggregate accordingly.",
+      "impact": "A large garnishment or benefit deduction fails validation with a pattern error that does not say why.",
+      "note": "The sibling deductionsGrossEarnings and netWages are xs:decimal up to 999999.99, so the tighter cap applies only to individual deduction lines."
+    },
+    {
+      "id": "ca-notes-optional-but-required",
+      "format": "ca-ecpr",
+      "element": "deductionsContribPay/notes",
+      "kind": "schema-vs-agency-guide",
+      "schemaSays": {"declaration": "default minOccurs of 1 with minLength 0 — the element must be present, its content may be empty", "source": "ca-dir-xsd"},
+      "guideSays": {"quote": "isn't mandatory and can be left blank", "source": "ca-dir-guideline"},
+      "resolution": "Send the element with empty content. \"Not mandatory\" refers to the content, not to the element.",
+      "impact": "Omitting the element fails schema validation."
+    },
+    {
+      "id": "ca-projectinfo-empty-vs-lookup",
+      "format": "ca-ecpr",
+      "element": "projectInfo/awardingBodyID, projectInfo/projectNum, projectInfo/contractID",
+      "kind": "schema-annotation-vs-agency-guide",
+      "guideSays": {"quote": "All other fields must be empty", "location": "step 5 under projectInfo", "source": "ca-dir-guideline"},
+      "schemaSays": {"quote": "If you do not have this number, please enter valid awardingBodyId, projectNum, and contractID so the system can properly look up the registered PWC-100 public project", "location": "the projectID annotation", "source": "ca-dir-xsd"},
+      "resolution": "The three elements are not declared fixed=\"\" — unlike awardingBody, contractAgencyID, projectName and every child of projectLocation, which are — so the schema permits the lookup path the annotation describes. Prefer a real projectID; fall back to the lookup triple only if you have no projectID.",
+      "impact": "Following the guide literally removes the only documented fallback for a filer who does not know the project ID."
+    },
+    {
+      "id": "ca-employee-cap-undocumented",
+      "format": "ca-ecpr",
+      "element": "employees/employee",
+      "kind": "undocumented-constraint",
+      "schemaSays": {"declaration": "maxOccurs=\"500\"", "source": "ca-dir-xsd"},
+      "guideSays": {"summary": "the guideline states no per-file limit", "source": "ca-dir-guideline"},
+      "resolution": "Split at 500 employees per file — the same cap New York applies to employee work weeks, arrived at independently.",
+      "impact": "A large contractor's weekly file fails validation with no documented explanation."
+    },
+    {
+      "id": "ca-version-numbering",
+      "format": "ca-ecpr",
+      "element": null,
+      "kind": "version-mismatch",
+      "schemaSays": {"declaration": "the schema comment reads Version 1.3", "source": "ca-dir-xsd"},
+      "documentationSays": {"summary": "the guideline PDF is titled Version 1.10, dated January 2016, and its release notes section is headed 1.5", "source": "ca-dir-guideline"},
+      "resolution": "There is no single version number for the California format. Pin to the schema's own comment and record the date you retrieved it.",
+      "impact": "Version pinning and change detection have to be done by content hash, not by a published version."
+    },
+    {
+      "id": "ca-full-ssn-vs-federal-prohibition",
+      "format": "ca-ecpr",
+      "element": "employee/ssn, employee/numWithholdingExemp",
+      "kind": "cross-jurisdiction-divergence",
+      "schemaSays": {"declaration": "ssn is required and restricted to [0-9]{9}; numWithholdingExemp is required and restricted to [0-9]{1,2}", "source": "ca-dir-xsd"},
+      "federalSays": {"summary": "WH-347 column 1E takes the last four digits or a worker-specific number, and full Social Security numbers must not be included; the January 2025 revision removed the withholding-exemptions column entirely", "source": "whd-wh347"},
+      "resolution": "Neither is wrong. The same worker record carries a full SSN in the California file and must not carry one in the federal form, and California still collects a field the federal form no longer has. Derive each output from a canonical record; do not reuse one file as the other.",
+      "impact": "The single clearest reason a certified payroll file cannot be reused across jurisdictions."
+    },
+    {
+      "id": "wa-deprecated-elements-still-in-schema",
+      "format": "wa-pwia",
+      "element": "amendedFlag, amendedDate, amendReason, WageID, apprenticePgmOccpnID, apprenticePgmName, apprenticePgmOccpnStepCalcID",
+      "kind": "schema-vs-agency-guide",
+      "schemaSays": {"declaration": "the elements are still declared in the PWIA schema", "source": "wa-lni-xml-guide"},
+      "guideSays": {"summary": "they can be removed from the file, and if included must be null; L&I states it is working on removing them from the schema", "source": "wa-lni-xml-guide"},
+      "resolution": "Omit them. If your generator emits them, emit them null.",
+      "impact": "A file generated straight from the schema carries seven fields the system does not want populated."
+    }
+  ]
+}

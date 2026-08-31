@@ -1,0 +1,168 @@
+{
+  "$comment": "Canonical registry of official sources. Every claim in this dataset carries one or more of these ids in its `sources` array. Nothing in this repository is sourced from commentary, vendor documentation, or secondary summaries.",
+  "retrieved": "2026-08-31",
+  "sources": {
+    "usc-40-3145": {
+      "title": "40 U.S.C. § 3145 — Payrolls and statements (Copeland Act)",
+      "publisher": "U.S. Congress (via Cornell LII)",
+      "kind": "statute",
+      "url": "https://www.law.cornell.edu/uscode/text/40/3145"
+    },
+    "usc-18-1001": {
+      "title": "18 U.S.C. § 1001 — Statements or entries generally",
+      "publisher": "U.S. Congress (via Cornell LII)",
+      "kind": "statute",
+      "url": "https://www.law.cornell.edu/uscode/text/18/1001"
+    },
+    "cfr-29-5.5": {
+      "title": "29 CFR 5.5 — Contract provisions and related matters",
+      "publisher": "U.S. Government Publishing Office (eCFR)",
+      "kind": "regulation",
+      "url": "https://www.ecfr.gov/current/title-29/subtitle-A/part-5/subpart-A/section-5.5"
+    },
+    "cfr-29-5.28": {
+      "title": "29 CFR 5.28 — Unfunded plans",
+      "publisher": "U.S. Government Publishing Office (eCFR)",
+      "kind": "regulation",
+      "url": "https://www.ecfr.gov/current/title-29/subtitle-A/part-5/subpart-B/section-5.28"
+    },
+    "cfr-29-part-3": {
+      "title": "29 CFR part 3 — Contractors and subcontractors on public building or public work (Copeland Act deductions)",
+      "publisher": "U.S. Government Publishing Office (eCFR)",
+      "kind": "regulation",
+      "url": "https://www.ecfr.gov/current/title-29/subtitle-A/part-3"
+    },
+    "whd-wh347": {
+      "title": "Instructions for Completing Davis-Bacon and Related Acts Weekly Certified Payroll Form, WH-347",
+      "publisher": "U.S. Department of Labor, Wage and Hour Division",
+      "kind": "agency-instructions",
+      "url": "https://www.dol.gov/agencies/whd/forms/wh347"
+    },
+    "whd-wh347-pdf": {
+      "title": "Form WH-347 (PDF)",
+      "publisher": "U.S. Department of Labor, Wage and Hour Division",
+      "kind": "form",
+      "url": "https://www.dol.gov/sites/dolgov/files/WHD/legacy/files/wh347.pdf"
+    },
+    "whd-wh347-annotated": {
+      "title": "WH-347 annotated guide (PDF)",
+      "publisher": "U.S. Department of Labor, Wage and Hour Division",
+      "kind": "agency-guide",
+      "url": "https://www.dol.gov/sites/dolgov/files/WHD/davis-bacon/wh347-annotated-guide.pdf"
+    },
+    "whd-dbra": {
+      "title": "Davis-Bacon and Related Acts — program overview and wage determinations",
+      "publisher": "U.S. Department of Labor, Wage and Hour Division",
+      "kind": "agency-page",
+      "url": "https://www.dol.gov/agencies/whd/government-contracts/construction"
+    },
+    "ca-lc-1771.4": {
+      "title": "California Labor Code § 1771.4",
+      "publisher": "California Legislative Information",
+      "kind": "statute",
+      "url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=LAB&sectionNum=1771.4"
+    },
+    "ca-lc-1776": {
+      "title": "California Labor Code § 1776",
+      "publisher": "California Legislative Information",
+      "kind": "statute",
+      "url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=LAB&sectionNum=1776"
+    },
+    "ca-dir-cpr": {
+      "title": "Certified Payroll Reporting (eCPR)",
+      "publisher": "California Department of Industrial Relations",
+      "kind": "agency-page",
+      "url": "https://www.dir.ca.gov/Public-Works/Certified-Payroll-Reporting.html"
+    },
+    "ca-dir-xsd": {
+      "title": "eCPR schema CPR.xsd — XML SCHEMA for electronic California Payroll Records Version 1.3",
+      "publisher": "California Department of Industrial Relations",
+      "kind": "schema",
+      "url": "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd"
+    },
+    "ca-dir-sample": {
+      "title": "CPRSample.xml — official eCPR sample file",
+      "publisher": "California Department of Industrial Relations",
+      "kind": "sample-file",
+      "url": "https://www.dir.ca.gov/Public-Works/CPR/CPRSample.xml"
+    },
+    "ca-dir-guideline": {
+      "title": "eCPR XML Guidelines, Version 1.10, January 2016 (PDF)",
+      "publisher": "California Department of Industrial Relations",
+      "kind": "agency-guide",
+      "url": "https://www.dir.ca.gov/Public-Works/CPR/eCPRXMLGuideline.pdf"
+    },
+    "ca-dir-exemptions": {
+      "title": "eCPR exemptions",
+      "publisher": "California Department of Industrial Relations",
+      "kind": "agency-page",
+      "url": "https://www.dir.ca.gov/Public-Works/eCPR_exemptions.html"
+    },
+    "ny-ll-220j": {
+      "title": "New York Labor Law Article 8 § 220-j",
+      "publisher": "New York State Legislature",
+      "kind": "statute",
+      "url": "https://www.nysenate.gov/legislation/laws/LAB/220-J"
+    },
+    "ny-dol-ep": {
+      "title": "Electronic Certified Payroll",
+      "publisher": "New York State Department of Labor",
+      "kind": "agency-page",
+      "url": "https://dol.ny.gov/electronic-payroll"
+    },
+    "ny-dol-faq": {
+      "title": "Electronic payroll FAQ",
+      "publisher": "New York State Department of Labor",
+      "kind": "agency-page",
+      "url": "https://dol.ny.gov/electronic-payroll-faq"
+    },
+    "ny-dol-buf": {
+      "title": "Bulk upload formatting guide",
+      "publisher": "New York State Department of Labor",
+      "kind": "agency-guide",
+      "url": "https://dol.ny.gov/bizserve/ep/guide/buf"
+    },
+    "ny-dol-xsd": {
+      "title": "NYDOL_CertPayroll.xsd — XML SCHEMA for electronic New York Certified Payroll Records Version 2.0",
+      "publisher": "New York State Department of Labor",
+      "kind": "schema",
+      "url": "https://dol.ny.gov/certpayrollxsd"
+    },
+    "ny-dol-sample": {
+      "title": "CertPayroll_Sample.xml — official NYSDOL sample file",
+      "publisher": "New York State Department of Labor",
+      "kind": "sample-file",
+      "url": "https://dol.ny.gov/certpayrollsamplexml"
+    },
+    "wa-rcw-39.12.120": {
+      "title": "RCW 39.12.120 — Certified payroll records",
+      "publisher": "Washington State Legislature",
+      "kind": "statute",
+      "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=39.12.120"
+    },
+    "wa-rcw-49.28.065": {
+      "title": "RCW 49.28.065 — Ten-hour workday agreements",
+      "publisher": "Washington State Legislature",
+      "kind": "statute",
+      "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=49.28.065"
+    },
+    "wa-lni-pw": {
+      "title": "Public works: contractors and employers",
+      "publisher": "Washington State Department of Labor & Industries",
+      "kind": "agency-page",
+      "url": "https://www.lni.wa.gov/licensing-permits/public-works-projects/contractors-employers/"
+    },
+    "wa-lni-xml-guide": {
+      "title": "XML Payroll Upload Guide, last updated January 2020 (PDF)",
+      "publisher": "Washington State Department of Labor & Industries",
+      "kind": "agency-guide",
+      "url": "https://lni.wa.gov/licensing-permits/_docs/xml%20payroll%20guide.pdf"
+    },
+    "wa-wac-296-127-320": {
+      "title": "WAC 296-127-320 — Payroll records",
+      "publisher": "Washington State Legislature",
+      "kind": "regulation",
+      "url": "https://app.leg.wa.gov/wac/default.aspx?cite=296-127-320"
+    }
+  }
+}

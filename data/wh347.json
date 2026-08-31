@@ -1,0 +1,507 @@
+{
+  "$comment": "Field map for U.S. DOL Form WH-347, as revised January 2025. Column numbering below matches the current form only; the pre-2025 form had one name field, a withholding-exemptions column, and a single rate-of-pay column, so guidance written against it will not line up.",
+  "reviewed": "2026-08-31",
+  "form": {
+    "id": "wh347",
+    "title": "Payroll (For Contractor's Optional Use)",
+    "publisher": "U.S. Department of Labor, Wage and Hour Division",
+    "ombControlNumber": "1235-0008",
+    "expires": "2028-01-31",
+    "revision": "2025-01",
+    "required": false,
+    "requiredNote": "The form is optional; the weekly submission is not. Properly completed, WH-347 satisfies the certified payroll requirements of 29 CFR parts 3 and 5. Any other format works provided each payroll carries a signed Statement of Compliance with wording identical to page 2.",
+    "versionCheck": "OMB Control No. 1235-0008 with an expiration of 01/31/2028 identifies the current form. A different expiration date means the PDF predates the January 2025 revision and its column numbering will not match this map.",
+    "sources": [
+      "whd-wh347",
+      "whd-wh347-pdf",
+      "cfr-29-5.5",
+      "usc-40-3145"
+    ]
+  },
+  "headerFields": [
+    {
+      "id": "finalPayroll",
+      "label": "Final payroll checkbox",
+      "type": "boolean",
+      "canonical": "payroll.final",
+      "required": false,
+      "description": "Marked when this submission covers the final week of work on the project for this contractor or subcontractor."
+    },
+    {
+      "id": "role",
+      "label": "Prime / subcontractor checkbox",
+      "type": "enum",
+      "values": [
+        "prime",
+        "subcontractor"
+      ],
+      "canonical": "contractor.role",
+      "required": true,
+      "description": "Which role the filer holds on this project."
+    },
+    {
+      "id": "projectName",
+      "label": "Project Name",
+      "type": "string",
+      "canonical": "project.name",
+      "required": true
+    },
+    {
+      "id": "projectOrContractNumber",
+      "label": "Project No. or Contract No.",
+      "type": "string",
+      "canonical": "project.number",
+      "required": false,
+      "description": "The project number or prime contract number assigned by the contracting agency, if available."
+    },
+    {
+      "id": "payrollNumber",
+      "label": "Certified Payroll No.",
+      "type": "integer",
+      "canonical": "payroll.number",
+      "required": true,
+      "description": "Sequential per project, beginning at 1. The sequence is per project, not per company and not per year."
+    },
+    {
+      "id": "businessName",
+      "label": "Business Name",
+      "type": "string",
+      "canonical": "contractor.name",
+      "required": true,
+      "description": "The legal name of the prime contractor or subcontractor."
+    },
+    {
+      "id": "projectLocation",
+      "label": "Project Location",
+      "type": "string",
+      "canonical": "project.location",
+      "required": true,
+      "description": "The complete project address; where there is no street address, a description that includes at minimum the county or counties and the state."
+    },
+    {
+      "id": "wageDeterminationNumber",
+      "label": "Wage Determination No.",
+      "type": "list",
+      "canonical": "project.wageDeterminations",
+      "required": true,
+      "description": "The wage determination number and revision number. Where several wage determinations apply, list every one that governed work performed in this pay period."
+    },
+    {
+      "id": "weekEndingDate",
+      "label": "Week Ending Date",
+      "type": "date",
+      "canonical": "payroll.weekEndingDate",
+      "required": true
+    },
+    {
+      "id": "businessAddress",
+      "label": "Business Address",
+      "type": "string",
+      "canonical": "contractor.address",
+      "required": true
+    }
+  ],
+  "columns": [
+    {
+      "id": "1A",
+      "label": "Worker Entry No.",
+      "canonical": "worker.entryNo",
+      "type": "integer",
+      "description": "Sequential per payroll, beginning at 1, continuing across continuation pages. A worker who worked in more than one classification gets a separate row per classification and the same entry number on each row."
+    },
+    {
+      "id": "1B",
+      "label": "Last Name",
+      "canonical": "worker.lastName",
+      "type": "string",
+      "newIn2025": true
+    },
+    {
+      "id": "1C",
+      "label": "First Name",
+      "canonical": "worker.firstName",
+      "type": "string",
+      "newIn2025": true
+    },
+    {
+      "id": "1D",
+      "label": "Middle Initial",
+      "canonical": "worker.middleInitial",
+      "type": "string",
+      "newIn2025": true
+    },
+    {
+      "id": "1E",
+      "label": "Worker Identifying No.",
+      "canonical": "worker.identifyingNumber",
+      "type": "string",
+      "constraint": "Last four digits of the Social Security number, or any number specific to that worker. Full Social Security numbers must not be included."
+    },
+    {
+      "id": "2",
+      "label": "Journeyworker / Registered Apprentice",
+      "canonical": "worker.status",
+      "type": "enum",
+      "values": [
+        "J",
+        "RA"
+      ],
+      "description": "J for a journeyworker, RA for an apprentice registered with the DOL Office of Apprenticeship or a State Apprenticeship Agency. For apprentices, also list the level of progression in the approved program."
+    },
+    {
+      "id": "3",
+      "label": "Labor Classification",
+      "canonical": "worker.classification",
+      "type": "string",
+      "description": "The classification for the work actually performed, drawn from the wage determination in the contract. If the wage determination has no classification for work performed, contact the contracting officer immediately rather than approximating."
+    },
+    {
+      "id": "4",
+      "label": "Hours Worked Each Day",
+      "canonical": "worker.days[]",
+      "type": "matrix",
+      "subfields": [
+        "straightTime",
+        "overtime"
+      ],
+      "description": "The first letter of each day of the contractor's workweek across the top row and the corresponding date beneath it, then per-worker hours split into straight time (ST) and overtime (OT). Under CWHSSA, hours beyond 40 in the week are overtime including hours worked off the site of the covered contract."
+    },
+    {
+      "id": "5",
+      "label": "Total Hours Worked for the Week",
+      "canonical": "derived",
+      "type": "decimal",
+      "derivation": "sum of column 4"
+    },
+    {
+      "id": "6A",
+      "label": "Hourly Wage Rate Paid, ST and OT",
+      "canonical": "worker.rate",
+      "type": "money",
+      "subfields": [
+        "straightTime",
+        "overtime"
+      ],
+      "description": "The rate actually paid \u2014 straight time on the top row, overtime beneath. Where a worker was paid above the wage determination, show what was actually paid. Cash paid in lieu of fringe benefits does not belong here."
+    },
+    {
+      "id": "6B",
+      "label": "Total Fringe Benefit Credit",
+      "canonical": "worker.fringeCredit",
+      "type": "money",
+      "description": "Contributions to, or reasonably anticipated costs of, bona fide fringe benefit plans for which a credit is claimed.",
+      "expected": "total hours worked in the period \u00d7 the hourly credit listed in the page 2 fringe table"
+    },
+    {
+      "id": "6C",
+      "label": "Payment in Lieu of Fringe Benefits",
+      "canonical": "worker.cashInLieu",
+      "type": "money",
+      "description": "Cash provided in lieu of fringe benefits during the workweek.",
+      "expected": "total hours worked \u00d7 the hourly cash-in-lieu rate",
+      "constraint": "6B and 6C are different obligations and must not be combined."
+    },
+    {
+      "id": "7A",
+      "label": "Gross Amount Earned",
+      "canonical": "worker.grossThisProject",
+      "type": "money",
+      "description": "Gross earned for hours worked on this federal or federally assisted project."
+    },
+    {
+      "id": "7B",
+      "label": "Gross Amount Earned for All Work",
+      "canonical": "worker.grossAllWork",
+      "type": "money",
+      "description": "Where part of the week's wage was earned elsewhere \u2014 including on projects not covered by Davis-Bacon \u2014 the total gross for all work performed during the week."
+    },
+    {
+      "id": "8",
+      "label": "Deductions for All Work",
+      "canonical": "worker.deductions",
+      "type": "group",
+      "subfields": [
+        "taxWithholdings",
+        "fica",
+        "other",
+        "total"
+      ],
+      "description": "Deductions from the all-work gross in 7B. A single \"Other\" deduction is described in Additional Remarks; several require an itemized addendum. Deductions must comply with 29 CFR part 3, and anything outside 29 CFR 3.5 needs prior DOL approval."
+    },
+    {
+      "id": "9",
+      "label": "Net Payment to Worker for All Work",
+      "canonical": "worker.netPay",
+      "type": "money",
+      "description": "The actual amount paid to the worker for all hours worked across all projects during the week, covered and uncovered alike."
+    }
+  ],
+  "pageTwo": {
+    "repeatedIdentifiers": [
+      "projectName",
+      "projectOrContractNumber",
+      "payrollNumber",
+      "businessName",
+      "projectLocation",
+      "weekEndingDate"
+    ],
+    "signatory": [
+      "certifyingOfficialName",
+      "certifyingOfficialTitle"
+    ],
+    "notarization": {
+      "required": false
+    },
+    "criminalExposure": {
+      "statute": "18 U.S.C. \u00a7 1001",
+      "penalty": "a fine, imprisonment of up to five years, or both",
+      "note": "The signer should have knowledge of the facts represented as true."
+    },
+    "checkboxes": [
+      {
+        "id": 1,
+        "always": true,
+        "description": "Certifies compliance."
+      },
+      {
+        "id": 2,
+        "always": true,
+        "description": "Certifies compliance."
+      },
+      {
+        "id": 3,
+        "always": true,
+        "description": "Certifies compliance."
+      },
+      {
+        "id": 4,
+        "always": false,
+        "appliesWhen": "apprentices worked in the period",
+        "description": "Each program the contractor has registered apprentices working under must be listed, marked as registered with the Office of Apprenticeship or a State Apprenticeship Agency, with the labor classification named.",
+        "addendumThreshold": 3,
+        "whenNotApplicable": "Leave unchecked and enter \"Not Applicable\" or \"N/A\"."
+      },
+      {
+        "id": 5,
+        "always": false,
+        "appliesWhen": "claiming an hourly credit for fringe benefit contributions",
+        "opens": "Hourly Credit for Fringe Benefits table",
+        "tableFields": [
+          "workerEntryNumber",
+          "workerName",
+          "planName",
+          "planType",
+          "planNumber",
+          "fundedOrUnfunded",
+          "hourlyCreditPerWorker",
+          "totalHourlyCostPerWorker"
+        ],
+        "addendumThreshold": 6,
+        "cashOnlyRule": "Where fringe obligations are met entirely in cash, box 5 is checked but the table is left blank, because those payments are already reported in column 6C. Where they are met partly by plan contributions and partly in cash, the amounts are split between this table and 6C."
+      },
+      {
+        "id": 6,
+        "always": true,
+        "description": "Certifies compliance."
+      }
+    ]
+  },
+  "easyToMiss": [
+    {
+      "id": "no-full-ssn",
+      "rule": "Full Social Security numbers must not appear in column 1E \u2014 last four digits, or a worker-specific number.",
+      "severity": "error",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "no-prorated-deductions",
+      "rule": "Deductions are never pro-rated. If a worker worked other jobs that week, show the actual deductions from the whole weekly gross, not a project-weighted share.",
+      "severity": "error",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "split-classification-rows",
+      "rule": "Split classifications need split rows. Without an accurate breakdown of hours per classification, the worker must be paid for all hours at the highest applicable prevailing rate \u2014 basic hourly rate and fringe benefits both.",
+      "severity": "error",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "unfunded-plan-approval",
+      "rule": "A credit for the reasonably anticipated cost of benefits provided directly by the contractor requires DOL approval in advance, under 29 CFR 5.28, before the credit is claimed.",
+      "severity": "error",
+      "sources": [
+        "cfr-29-5.28"
+      ]
+    },
+    {
+      "id": "offsite-overtime",
+      "rule": "Under CWHSSA the 40-hour overtime threshold covers hours on and off the site of the covered contract, so a worker splitting a week across jobs can be owed overtime that this project's hours alone would not show.",
+      "severity": "warning",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "scanned-signature",
+      "rule": "A scanned signature is not a signature. Legally valid electronic signatures are accepted; photocopies and scans of a signature do not satisfy the requirement.",
+      "severity": "error",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wage-determination-revision",
+      "rule": "The wage determination field asks for the determination number and its revision, and for every determination that applied during the period.",
+      "severity": "warning",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "fringe-6b-6c-separate",
+      "rule": "Column 6B (credit for plan contributions) and column 6C (cash in lieu) are different obligations and must not be combined.",
+      "severity": "error",
+      "sources": [
+        "whd-wh347"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "id": "wh347.column5.matchesColumn4",
+      "severity": "error",
+      "statement": "Column 5 must equal the total of the hours entered in column 4.",
+      "derivedFrom": "the column 5 instruction",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column1E.notFullSsn",
+      "severity": "error",
+      "statement": "Column 1E must not carry a full Social Security number. Nine consecutive digits, or a formatted SSN, is a failure.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column2.apprenticeLevel",
+      "severity": "error",
+      "statement": "Where column 2 is RA, the level of progression in the approved program must also be listed.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column1A.entryNoPerWorker",
+      "severity": "error",
+      "statement": "A worker who worked in more than one classification takes a separate row per classification and the same entry number on each row. Two rows for the same worker with different entry numbers, or one entry number shared by two different workers, is a failure.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column1A.sequential",
+      "severity": "warning",
+      "statement": "Worker entry numbers run sequentially from 1 across the payroll, continuation pages included.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column6B.matchesFringeTable",
+      "severity": "warning",
+      "statement": "Column 6B should equal total hours worked in the period multiplied by the hourly credit listed in the page 2 fringe table.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column6C.matchesCashRate",
+      "severity": "warning",
+      "statement": "Column 6C should equal total hours worked multiplied by the hourly cash-in-lieu rate.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column7.projectNotAboveAll",
+      "severity": "error",
+      "statement": "Column 7A, the gross earned on this project, cannot exceed column 7B, the gross earned for all work in the week.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column8.totalMatchesItems",
+      "severity": "error",
+      "statement": "The deductions total in column 8 must equal the sum of the tax withholdings, FICA and Other amounts entered.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.column9.netMatchesGrossLessDeductions",
+      "severity": "error",
+      "statement": "Column 9 must equal column 7B less the column 8 total \u2014 the net paid for all work, not a project share.",
+      "sources": [
+        "whd-wh347",
+        "cfr-29-part-3"
+      ]
+    },
+    {
+      "id": "wh347.column4.overtimeThreshold",
+      "severity": "warning",
+      "statement": "More than 40 straight-time hours in the week with no overtime hours recorded is inconsistent with CWHSSA, which counts hours worked off the site of the covered contract toward the 40-hour threshold.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.header.wageDeterminationRevision",
+      "severity": "warning",
+      "statement": "Each wage determination listed needs its revision number as well as its determination number.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.header.payrollNumber",
+      "severity": "warning",
+      "statement": "The certified payroll number is sequential per project beginning at 1; a value below 1 is invalid.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.pageTwo.box4Addendum",
+      "severity": "advisory",
+      "statement": "More than three apprenticeship program entries under box 4 require an addendum.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.pageTwo.box5Addendum",
+      "severity": "advisory",
+      "statement": "More than six fringe benefit plans in the box 5 table require an addendum.",
+      "sources": [
+        "whd-wh347"
+      ]
+    },
+    {
+      "id": "wh347.pageTwo.box5CashOnly",
+      "severity": "warning",
+      "statement": "Where fringe obligations are met entirely in cash, box 5 is checked and the hourly credit table is left blank, because those payments are already reported in column 6C. A fringe plan listed alongside a zero fringe credit and a non-zero cash-in-lieu amount is the shape this rule is about.",
+      "sources": [
+        "whd-wh347"
+      ]
+    }
+  ]
+}
