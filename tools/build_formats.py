@@ -16,6 +16,7 @@ import io
 import json
 import os
 import pathlib
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
@@ -23,6 +24,11 @@ import zipfile
 XS = "{http://www.w3.org/2001/XMLSchema}"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CACHE = ROOT / "tools" / "cache"
+
+# dol.ny.gov answers 403 to the default Python-urllib user agent. Identify the tool
+# properly rather than pretending to be a browser.
+USER_AGENT = ("certified-payroll-formats/0.1 "
+              "(+https://github.com/Osketh-AI/certified-payroll-formats)")
 
 SCHEMAS = {
     "ca": {
@@ -44,8 +50,21 @@ def fetch(key, offline):
     if offline or path.exists():
         return path.read_bytes()
     CACHE.mkdir(parents=True, exist_ok=True)
-    with urllib.request.urlopen(spec["url"]) as r:  # noqa: S310 - fixed official URLs
-        raw = r.read()
+    request = urllib.request.Request(spec["url"], headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request) as response:  # noqa: S310 - fixed official URLs
+            raw = response.read()
+    except urllib.error.HTTPError as error:
+        raise SystemExit(
+            f"{spec['url']} returned HTTP {error.code}. Agencies do change these URLs; "
+            f"check the source in data/sources.json before assuming the tool is at fault."
+        ) from None
+    except urllib.error.URLError as error:
+        raise SystemExit(
+            f"could not reach {spec['url']}: {error.reason}. On macOS a certificate "
+            f"verification failure usually means the Python install has no root "
+            f"certificates — run Install Certificates.command from the Python folder."
+        ) from None
     if spec["zipped"]:
         with zipfile.ZipFile(io.BytesIO(raw)) as z:
             name = next(n for n in z.namelist() if n.lower().endswith(".xsd"))

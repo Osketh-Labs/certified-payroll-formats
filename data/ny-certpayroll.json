@@ -10,7 +10,7 @@
     "elementFormDefault": "qualified",
     "rootElement": "ProjectRollup",
     "version": "2.0",
-    "versionNote": "Taken from the comment at the top of the schema: \"XML SCHEMA for electronic New York Certified Payroll Records Version 2.0\". NYSDOL distributes the .xsd inside a ZIP archive.",
+    "versionNote": "Taken from the comment at the top of the schema: \"XML SCHEMA for electronic New York Certified Payroll Records Version 2.0\". NYSDOL distributes the .xsd inside a ZIP archive, and the short URL redirects to a dated path under /system/files/documents/ \u2014 as of the review date, a file published in July 2026. The redirect target changes when NYSDOL republishes, so pin by content, not by URL.",
     "conventionalPrefix": null
   },
   "guide": {
