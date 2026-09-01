@@ -32,10 +32,27 @@ validators under `schema.enumeration`.
 - Both CLIs report an unreadable file as a message on stderr with exit code 2, instead of
   a stack trace.
 
-**Testing.** 121 JavaScript and 113 Python tests, up from 41 and 39, covering the XML
+**Second verification pass.** Two more defects, both on inputs the formats explicitly
+permit:
+
+- Parsing was quadratic in file size. Each node's line number was computed by counting
+  newlines from the start of the document, so the largest file New York accepts — 500
+  employee work weeks, about a megabyte — took 15.5 seconds instead of 44 milliseconds.
+  The line number was already tracked incrementally; the recomputation was redundant.
+- Length facets counted UTF-16 code units in JavaScript rather than characters, so a
+  name written in astral-plane characters measured double and a legal value was
+  rejected. Python counted correctly, so the two disagreed. The mutation harness had
+  missed it because it only ever injected ASCII; it now injects non-ASCII too.
+
+The XSD extractor, which produced the enumeration error above and had no tests of its
+own, is now covered directly: repeated facets, fixed values, occurrence defaults,
+attribute capture, annotation handling, and the rule that a container element must not
+inherit a descendant's type.
+
+**Testing.** 135 JavaScript and 146 Python tests, up from 41 and 39, covering the XML
 readers, the structural checker facet by facet, every documented rule that a schema
 cannot express, the WH-347 mapper, and both CLIs. `tools/differential.py` mutates every
-element of every fixture four ways and asserts both implementations agree on all 400
+element of every fixture four ways and asserts both implementations agree on all 485
 mutants; it runs in CI.
 
 ## 0.1.0 — 2026-08-31

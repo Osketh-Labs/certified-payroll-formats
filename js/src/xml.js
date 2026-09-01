@@ -49,11 +49,10 @@ export function parseXml(source) {
   const stack = [];
   let root = null;
 
-  const lineAt = (index) => {
-    let n = 1;
-    for (let k = 0; k < index; k += 1) if (source.charCodeAt(k) === 10) n += 1;
-    return n;
-  };
+  // `line` is maintained incrementally by advance(), which has already run past the
+  // opening `<` by the time a node is built. Recomputing it by counting newlines from
+  // the start of the document would make parsing quadratic in the file size: a legal
+  // 500-record New York file is a megabyte, and that cost is not theoretical.
   const advance = (to) => {
     for (let k = i; k < to; k += 1) if (source.charCodeAt(k) === 10) line += 1;
     i = to;
@@ -136,7 +135,7 @@ export function parseXml(source) {
     while ((m = attrRe.exec(body.slice(nameMatch[0].length))) !== null) {
       // A repeated attribute is a well-formedness error, not a last-one-wins merge.
       if (Object.prototype.hasOwnProperty.call(attrs, m[1])) {
-        throw new XmlError(`Duplicate attribute ${m[1]} on <${qname}>`, lineAt(i));
+        throw new XmlError(`Duplicate attribute ${m[1]} on <${qname}>`, line);
       }
       attrs[m[1]] = decodeEntities(m[3] !== undefined ? m[3] : m[4], line);
     }
@@ -158,7 +157,7 @@ export function parseXml(source) {
       attrs,
       children: [],
       text: '',
-      line: lineAt(i),
+      line,
       nsScope: scope,
       parent,
     };

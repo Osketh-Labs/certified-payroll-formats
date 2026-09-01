@@ -284,9 +284,9 @@ offers an API for bulk certified payroll — and does not render a PDF.
 ## Development
 
 ```bash
-cd js && npm test                                            # 121 tests
-cd py && PYTHONPATH=src python3 -m unittest discover -s tests # 113 tests
-python3 tools/differential.py                                # both, on 400 mutants
+cd js && npm test                                            # 135 tests
+cd py && PYTHONPATH=src python3 -m unittest discover -s tests # 146 tests
+python3 tools/differential.py                                # both, on 485 mutants
 ```
 
 No dependencies and no network in any of them.
@@ -296,10 +296,14 @@ zero findings and an invalid file carrying one seeded fault per documented rule,
 suites assert the same rule fires for the same fault.
 
 Unit tests only catch what someone thought to test, so `tools/differential.py` walks every
-element of every fixture and mutates it four ways — drop it, duplicate it, blank it,
-corrupt it — then checks that both implementations report an identical set of rule ids for
-all 400 mutants. It is a CI job. Two implementations that disagree about a file are worse
-than one, and this is what stops them drifting.
+element of every fixture and mutates it five ways — drop it, duplicate it, blank it,
+corrupt it, replace it with non-ASCII — then checks that both implementations report an
+identical set of rule ids for all 485 mutants. It is a CI job. Two implementations that
+disagree about a file are worse than one, and this is what stops them drifting.
+
+The suites also cover the inputs these formats actually permit at their limits: the
+largest file New York accepts is 500 employee work weeks, about a megabyte, and parsing
+it must stay linear.
 
 `data/` at the repository root is the single source of truth. `tools/sync_packages.py`
 copies it into each package before publishing, because neither npm nor a Python wheel can

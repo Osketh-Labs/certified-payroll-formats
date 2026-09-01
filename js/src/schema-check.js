@@ -113,10 +113,14 @@ function checkValue(def, node, out, formatId) {
       return;
     }
   }
-  if (facets.minLength !== undefined && value.length < Number(facets.minLength)) {
+  // XSD length facets count characters. JavaScript's .length counts UTF-16 code units,
+  // so a name written in astral-plane characters would measure double and a legal value
+  // would be rejected.
+  const characters = [...value].length;
+  if (facets.minLength !== undefined && characters < Number(facets.minLength)) {
     out.push(finding(ruleFor('length', formatId), { ...where, message: `<${node.qname}> is shorter than minLength`, expected: `at least ${facets.minLength} characters` }));
   }
-  if (facets.maxLength !== undefined && value.length > Number(facets.maxLength)) {
+  if (facets.maxLength !== undefined && characters > Number(facets.maxLength)) {
     out.push(finding(ruleFor('length', formatId), { ...where, message: `<${node.qname}> is longer than maxLength`, expected: `at most ${facets.maxLength} characters` }));
   }
 

@@ -71,6 +71,9 @@ def mutations(source):
             head, tail = source[:found.start()], source[found.end():]
             yield f"blank:{name}", head + found.group(1) + found.group(3) + tail
             yield f"junk:{name}", head + found.group(1) + "ZZ~9" + found.group(3) + tail
+            # Non-ASCII, including an astral-plane character, because the two languages
+            # disagree about what "length" means unless they are made to agree.
+            yield f"unicode:{name}", head + found.group(1) + "Ünïcødé-\U0001d54f" + found.group(3) + tail
 
 
 def main():
