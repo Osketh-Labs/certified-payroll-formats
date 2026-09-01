@@ -13,6 +13,7 @@ no packaged copy is present, which is what happens when you run from a checkout.
 
 import pathlib
 import shutil
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "data"
@@ -25,16 +26,21 @@ DOCS = ["README.md", "LICENSE"]
 
 
 def main() -> None:
+    # Progress goes to stderr. npm runs this as a prepack hook, and anything this
+    # writes to stdout ends up inside the output of `npm pack --json`.
+    def report(message):
+        print(message, file=sys.stderr)
+
     for target in DATA_TARGETS:
         if target.exists():
             shutil.rmtree(target)
         shutil.copytree(SOURCE, target, ignore=shutil.ignore_patterns("*.md"))
         count = len(list(target.glob("*.json")))
-        print(f"{target.relative_to(ROOT)}: {count} files")
+        report(f"{target.relative_to(ROOT)}: {count} files")
     for package in PACKAGES:
         for name in DOCS:
             shutil.copyfile(ROOT / name, package / name)
-            print(f"{(package / name).relative_to(ROOT)}")
+            report(f"{(package / name).relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
