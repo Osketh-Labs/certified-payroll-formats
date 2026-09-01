@@ -6,8 +6,8 @@ build-backend = "hatchling.build"
 name = "certified-payroll-formats"
 version = "0.1.0"
 description = "Machine-readable reference data and zero-dependency validators for US certified payroll filing: WH-347, California eCPR XML, New York bulk upload XML, Washington PWIA."
-readme = "../README.md"
-license = { file = "../LICENSE" }
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.9"
 keywords = ["certified-payroll", "prevailing-wage", "davis-bacon", "wh-347", "ecpr", "payroll", "xml", "compliance", "public-works"]
 classifiers = [

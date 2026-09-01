@@ -58,6 +58,23 @@ jobs:
         env:
           PYTHONPATH: src
 
+      # The npm page renders the README from inside the tarball. Both live at the
+      # repository root, so without the sync step above the published page is blank.
+      - name: npm tarball carries the data, the README and the licence
+        working-directory: js
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e "const files=require('/tmp/pack.json')[0].files.map(f=>f.path); for (const need of ['README.md','LICENSE','data/sources.json','src/index.js']) { if (!files.includes(need)) { console.error('missing from tarball: '+need); process.exit(1); } } console.log(files.length+' files in the tarball');"
+
+      - name: wheel builds, carries its data, and works once installed
+        working-directory: py
+        run: |
+          python -m pip install --quiet build
+          python -m build --wheel --outdir dist
+          python -c "import glob,zipfile,sys; n=zipfile.ZipFile(glob.glob('dist/*.whl')[0]).namelist(); [sys.exit('missing from wheel: '+x) for x in ['certified_payroll_formats/data/sources.json'] if x not in n]; print(len(n),'files in the wheel')"
+          python -m pip install --quiet dist/*.whl
+          cd /tmp && python -c "from certified_payroll_formats import jurisdiction, validate_ny_cert_payroll; assert jurisdiction('us-ny')['machineReadableFormat']['maxRecordsPerFile']==500; print('installed package resolves its bundled data')"
+
   differential:
     # The two implementations are written independently and must stay interchangeable.
     # Every element of every fixture is mutated four ways and both must report the same

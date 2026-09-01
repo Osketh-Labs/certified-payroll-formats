@@ -10,3 +10,7 @@ tools/cache/
 js/data/
 py/src/certified_payroll_formats/data/
 .npmrc
+js/README.md
+js/LICENSE
+py/README.md
+py/LICENSE
