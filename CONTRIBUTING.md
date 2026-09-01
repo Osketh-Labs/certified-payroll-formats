@@ -56,7 +56,13 @@ both test suites asserting the same rule ids.
 ```bash
 cd js && npm test
 cd py && PYTHONPATH=src python3 -m unittest discover -s tests
+python3 tools/differential.py
 ```
+
+The last one is the important one for a behaviour change. It mutates every element of
+every fixture four ways and fails if the two implementations report different rule ids for
+any mutant, which is how a change made in one language and forgotten in the other gets
+caught.
 
 Neither package may take a runtime dependency. The test suites use `node:test` and
 `unittest` for the same reason. If a change seems to need a library, it probably needs a

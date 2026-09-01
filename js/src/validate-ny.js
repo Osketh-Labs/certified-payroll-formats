@@ -6,7 +6,7 @@
 // and is rejected on upload.
 
 import { parseXml, kid, kids, textAt, pathOf } from './xml.js';
-import { checkAgainstSchema } from './schema-check.js';
+import { checkAgainstSchema, isCalendarDate } from './schema-check.js';
 import { nyCertPayroll } from './data.js';
 import { finding, summarize } from './finding.js';
 
@@ -20,6 +20,17 @@ const US_STATE_ABBREVIATIONS = new Set(['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT'
 function addDays(iso, n) {
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d) + n * 86400000).toISOString().slice(0, 10);
+}
+
+/**
+ * The seven-day window, or null when the week ending date is not a real calendar date.
+ * A value like 2026-13-45 is already reported by the schema check; deriving a window
+ * from it would roll over into another month and flag every day in the file.
+ */
+function weekWindow(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '');
+  if (!m || !isCalendarDate(Number(m[1]), Number(m[2]), Number(m[3]))) return null;
+  return Array.from({ length: 7 }, (_, k) => addDays(iso, k - 6));
 }
 
 /**
@@ -56,7 +67,7 @@ export function validateNyCertPayroll(xml, options = {}) {
   out.push(...checkAgainstSchema(root, 'ny-certpayroll', null, { reportNamespace: !root.ns }));
 
   const weekEndingRaw = textAt(root, 'weekEndingDate') ?? '';
-  const weekEnding = weekEndingRaw.slice(0, 10);
+  const window = weekWindow(weekEndingRaw.slice(0, 10));
   const workWeeks = kids(kid(root, 'employeeWorkWeeks'), 'employeeWorkWeek');
 
   const seen = new Map();
@@ -110,15 +121,12 @@ export function validateNyCertPayroll(xml, options = {}) {
         const date = textAt(dayNode, 'day');
         if (!date) continue;
         dates.push(date);
-        if (weekEnding && /^\d{4}-\d{2}-\d{2}$/.test(weekEnding)) {
-          const window = Array.from({ length: 7 }, (_, k) => addDays(weekEnding, k - 6));
-          if (!window.includes(date)) {
-            out.push(finding(R['ny.days.withinWeek'], {
-              path: `${pathOf(workWeek)}/days/day`, line: dayNode.line,
-              message: 'the day date falls outside the seven-day window ending on weekEndingDate',
-              expected: `${window[0]} … ${window[6]}`, actual: date,
-            }));
-          }
+        if (window && !window.includes(date)) {
+          out.push(finding(R['ny.days.withinWeek'], {
+            path: `${pathOf(workWeek)}/days/day`, line: dayNode.line,
+            message: 'the day date falls outside the seven-day window ending on weekEndingDate',
+            expected: `${window[0]} … ${window[6]}`, actual: date,
+          }));
         }
       }
       const duplicates = dates.filter((d, k) => dates.indexOf(d) !== k);

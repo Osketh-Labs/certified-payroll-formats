@@ -5,7 +5,7 @@
 // arithmetic, conditional structure, and the conventions DIR states in prose.
 
 import { parseXml, kid, kids, textAt, pathOf } from './xml.js';
-import { checkAgainstSchema } from './schema-check.js';
+import { checkAgainstSchema, isCalendarDate } from './schema-check.js';
 import { caEcpr } from './data.js';
 import { finding, summarize } from './finding.js';
 
@@ -15,8 +15,12 @@ const ruleIndex = () => Object.fromEntries(caEcpr().rules.map((r) => [r.id, r]))
 
 const num = (node) => {
   if (!node) return null;
-  const v = Number(node.text.trim());
-  return Number.isFinite(v) ? v : null;
+  const text = node.text.trim();
+  // Number('') is 0. An empty element has no value, and reading it as zero would turn
+  // one fault into a second, spurious arithmetic finding.
+  if (text === '') return null;
+  const value = Number(text);
+  return Number.isFinite(value) ? value : null;
 };
 const close = (a, b) => Math.abs(a - b) < 0.005;
 const money = (n) => n.toFixed(2);
@@ -25,6 +29,17 @@ function addDays(iso, n) {
   const [y, m, d] = iso.split('-').map(Number);
   const t = Date.UTC(y, m - 1, d) + n * 86400000;
   return new Date(t).toISOString().slice(0, 10);
+}
+
+/**
+ * The seven-day window, or null when the week ending date is not a real calendar date.
+ * A value like 2026-13-45 is already reported by the schema check; deriving a window
+ * from it would roll over into another month and manufacture findings that are not real.
+ */
+function weekWindow(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '');
+  if (!m || !isCalendarDate(Number(m[1]), Number(m[2]), Number(m[3]))) return null;
+  return Array.from({ length: 7 }, (_, k) => addDays(iso, k - 6));
 }
 
 /**
@@ -141,8 +156,8 @@ export function validateCaEcpr(xml, options = {}) {
 
     const days = kids(kid(payroll, 'hrsWorkedEachDay'), 'day');
     const dates = days.map((d) => textAt(d, 'date')).filter(Boolean);
-    if (weekEnding && dates.length === 7) {
-      const expected = Array.from({ length: 7 }, (_, k) => addDays(weekEnding, k - 6));
+    const expected = weekWindow(weekEnding);
+    if (expected && dates.length === 7) {
       const sorted = [...dates].sort();
       if (sorted.join(',') !== expected.join(',')) {
         out.push(finding(R['ca.days.consecutive'], {

@@ -9,7 +9,7 @@ from typing import Optional
 
 from .data import format_data
 from .finding import finding, summarize
-from .schema_check import check_against_schema
+from .schema_check import check_against_schema, is_calendar_date
 from .xml_reader import XmlError, kid, kids, parse_xml, path_of, text_at
 
 CA_NAMESPACE = "http://www.dir.ca.gov/dlse/CPR-Prod-Test/CPR.xsd"
@@ -32,7 +32,15 @@ def _decimal(node) -> Optional[Decimal]:
         return None
 
 
-def _week(week_ending: str) -> list:
+def _week_window(week_ending):
+    """The seven-day window, or None when the week ending date is not a real calendar date.
+
+    A value like 2026-13-45 is already reported by the schema check; deriving a window
+    from it would either raise or roll over into another month and manufacture findings.
+    """
+    match = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", week_ending or "")
+    if not match or not is_calendar_date(*(int(g) for g in match.groups())):
+        return None
     end = date.fromisoformat(week_ending)
     return [(end - timedelta(days=n)).isoformat() for n in range(6, -1, -1)]
 
@@ -126,8 +134,8 @@ def validate_ca_ecpr(xml: str, filename: Optional[str] = None) -> dict:
 
         days = kids(kid(payroll, "hrsWorkedEachDay"), "day")
         dates = [d for d in (text_at(day, "date") for day in days) if d]
-        if week_ending and len(dates) == 7 and re.fullmatch(r"\d{4}-\d{2}-\d{2}", week_ending):
-            expected_days = _week(week_ending)
+        expected_days = _week_window(week_ending)
+        if expected_days and len(dates) == 7:
             if sorted(dates) != expected_days:
                 out.append(finding(R["ca.days.consecutive"],
                                    path=f"{base}/payroll/hrsWorkedEachDay", line=days[0].line,

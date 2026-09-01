@@ -284,14 +284,22 @@ offers an API for bulk certified payroll — and does not render a PDF.
 ## Development
 
 ```bash
-cd js && npm test          # no dependencies, no network
-cd py && PYTHONPATH=src python3 -m unittest discover -s tests
+cd js && npm test                                            # 121 tests
+cd py && PYTHONPATH=src python3 -m unittest discover -s tests # 113 tests
+python3 tools/differential.py                                # both, on 400 mutants
 ```
 
+No dependencies and no network in any of them.
+
 Fixtures live in [`fixtures/`](fixtures/). Each format has a valid file that must produce
-zero findings and an invalid file carrying one seeded fault per documented rule; both
-test suites assert the same rule fires for the same fault, so the two implementations
-cannot drift.
+zero findings and an invalid file carrying one seeded fault per documented rule, and both
+suites assert the same rule fires for the same fault.
+
+Unit tests only catch what someone thought to test, so `tools/differential.py` walks every
+element of every fixture and mutates it four ways — drop it, duplicate it, blank it,
+corrupt it — then checks that both implementations report an identical set of rule ids for
+all 400 mutants. It is a CI job. Two implementations that disagree about a file are worse
+than one, and this is what stops them drifting.
 
 `data/` at the repository root is the single source of truth. `tools/sync_packages.py`
 copies it into each package before publishing, because neither npm nor a Python wheel can

@@ -134,3 +134,119 @@ class Wh347(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Edges(unittest.TestCase):
+    def test_sparse_or_empty_records_are_handled(self):
+        for record in ({}, {"workers": []}, {"workers": [{}]},
+                       {"project": {}, "workers": [{"entryNo": 1}]}):
+            with self.subTest(record=record):
+                check_wh347(record)
+                to_wh347(record)
+        self.assertEqual(check_wh347({"workers": [{}]})["findings"], [],
+                         "a worker with no entry number is not a broken sequence")
+        self.assertEqual(total_hours({}), 0)
+
+    def test_two_workers_may_not_share_an_entry_number(self):
+        record = base()
+        second = dict(record["workers"][0])
+        second.update({"entryNo": 1, "lastName": "Other", "firstName": "Sam",
+                       "identifyingNumber": "4444"})
+        record["workers"].append(second)
+        self.assertIn("wh347.column1A.entryNoPerWorker", ids(record))
+
+    def test_entry_numbers_run_from_one(self):
+        record = base()
+        record["workers"][0]["entryNo"] = 2
+        hit = next(f for f in check_wh347(record)["findings"]
+                   if f["ruleId"] == "wh347.column1A.sequential")
+        self.assertEqual(hit["severity"], "warning")
+        self.assertEqual(hit["expected"], "1")
+
+    def test_payroll_number_below_one(self):
+        record = base()
+        record["payroll"]["number"] = 0
+        self.assertIn("wh347.header.payrollNumber", ids(record))
+
+    def test_column_7a_may_not_exceed_7b(self):
+        record = base()
+        record["workers"][0]["grossThisProject"] = 1500
+        self.assertIn("wh347.column7.projectNotAboveAll", ids(record))
+
+    def test_cash_in_lieu_rate_drives_column_6c(self):
+        record = base()
+        record["workers"][0].update({"fringeCredit": 0, "hourlyFringeCredit": 0,
+                                     "cashInLieu": 150, "hourlyCashInLieu": 5})
+        self.assertIn("wh347.column6C.matchesCashRate", ids(record))
+
+    def test_fringe_met_entirely_in_cash_means_box_five_with_a_blank_table(self):
+        record = base()
+        record["workers"][0].update({"fringeCredit": 0, "hourlyFringeCredit": 0,
+                                     "cashInLieu": 200, "hourlyCashInLieu": 5})
+        record["fringePlans"] = [{"name": "Example Health Trust", "type": "health", "funded": True}]
+        self.assertIn("wh347.pageTwo.box5CashOnly", ids(record))
+        page_two = to_wh347(record)["pageTwo"]
+        self.assertTrue(page_two["checkboxes"][5])
+        self.assertEqual(page_two["box5Table"], [])
+
+    def test_an_apprentice_populates_box_four(self):
+        record = base()
+        record["workers"][0].update({"status": "RA", "apprenticeLevel": "3rd period"})
+        record["apprenticePrograms"] = [{"program": "Example JATC", "classification": "Carrier Driver"}]
+        rendered = to_wh347(record)
+        self.assertEqual(rendered["rows"][0]["2"], "RA (3rd period)")
+        self.assertTrue(rendered["pageTwo"]["checkboxes"][4])
+        self.assertEqual(rendered["pageTwo"]["box4"], record["apprenticePrograms"])
+        self.assertEqual(check_wh347(record)["findings"], [])
+
+    def test_addendum_thresholds(self):
+        record = base()
+        record["apprenticePrograms"] = [{"program": f"P{i}", "classification": "x"} for i in range(4)]
+        record["fringePlans"] = [{"name": f"Plan {i}"} for i in range(7)]
+        found = ids(record)
+        self.assertIn("wh347.pageTwo.box4Addendum", found)
+        self.assertIn("wh347.pageTwo.box5Addendum", found)
+        addenda = to_wh347(record)["pageTwo"]["addenda"]
+        self.assertTrue(addenda["box4Required"])
+        self.assertTrue(addenda["box5Required"])
+
+    def test_several_wage_determinations_are_all_listed(self):
+        record = base()
+        record["project"]["wageDeterminations"] = [
+            {"number": "CA20260001", "revision": "3"},
+            {"number": "CA20260002", "revision": "1"},
+        ]
+        self.assertEqual(to_wh347(record)["header"]["wageDeterminationNumber"],
+                         "CA20260001 rev. 3; CA20260002 rev. 1")
+        self.assertEqual(check_wh347(record)["findings"], [])
+
+    def test_nine_digit_identifier_however_punctuated(self):
+        for value in ("111223333", "111-22-3333", "111 22 3333"):
+            record = base()
+            record["workers"][0]["identifyingNumber"] = value
+            with self.subTest(value=value):
+                self.assertIn("wh347.column1E.notFullSsn", ids(record))
+        for value in ("3333", "EMP-00042", "12345678"):
+            record = base()
+            record["workers"][0]["identifyingNumber"] = value
+            with self.subTest(value=value):
+                self.assertNotIn("wh347.column1E.notFullSsn", ids(record))
+
+    def test_deduction_arithmetic_includes_itemised_other_lines(self):
+        record = base()
+        record["workers"][0]["deductions"] = {
+            "taxWithholdings": 190, "fica": 91.8,
+            "other": [{"name": "Union dues", "amount": 25}, {"name": "Garnishment", "amount": 30}],
+            "total": 336.8,
+        }
+        record["workers"][0]["netPay"] = 863.2
+        self.assertEqual(check_wh347(record)["findings"], [])
+        record["workers"][0]["deductions"]["total"] = 281.8
+        self.assertIn("wh347.column8.totalMatchesItems", ids(record))
+
+    def test_every_finding_cites_the_whd_instructions(self):
+        record = base()
+        record["workers"][0]["identifyingNumber"] = "111223333"
+        for f in check_wh347(record)["findings"]:
+            self.assertTrue(f["sources"])
+            self.assertTrue(any("dol.gov" in s["url"] or "ecfr.gov" in s["url"] for s in f["sources"]))

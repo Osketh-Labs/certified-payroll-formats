@@ -299,7 +299,7 @@ export function checkWH347(record) {
     }
   });
 
-  const unique = [...new Set(seenEntryNos)].sort((a, b) => a - b);
+  const unique = [...new Set(seenEntryNos.filter((n) => n !== undefined && n !== null))].sort((a, b) => a - b);
   const expectedSequence = unique.map((_, k) => k + 1);
   if (unique.length && unique.join(',') !== expectedSequence.join(',')) {
     out.push(finding(check('wh347.column1A.sequential'), {

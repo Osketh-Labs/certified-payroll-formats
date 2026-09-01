@@ -625,7 +625,13 @@
       "maxOccurs": "1",
       "type": "xs:string",
       "facets": {
-        "enumeration": "Other Benefit (Type)"
+        "enumeration": [
+          "Health/Welfare",
+          "Vacation/Holiday",
+          "Apprenticeship/Training",
+          "Pension",
+          "Other Benefit (Type)"
+        ]
       }
     },
     {

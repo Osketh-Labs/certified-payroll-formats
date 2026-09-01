@@ -71,13 +71,25 @@ def describe(el):
     r = own_restriction(el)
     if r is not None:
         out["type"] = r.get("base")
+        facets = out.setdefault("facets", {})
         for facet in r:
             if not facet.tag.startswith(XS):
                 continue
             name = facet.tag[len(XS):]
             if name == "annotation":
                 continue
-            out.setdefault("facets", {})[name] = facet.get("value")
+            value = facet.get("value")
+            # xs:enumeration always repeats, and xs:pattern may. Collapsing repeats to
+            # the last one would misstate the schema, so repeated facets become lists.
+            if name == "enumeration":
+                facets.setdefault(name, []).append(value)
+            elif name in facets:
+                existing = facets[name]
+                facets[name] = (existing if isinstance(existing, list) else [existing]) + [value]
+            else:
+                facets[name] = value
+        if not facets:
+            out.pop("facets")
     doc = el.find(XS + "annotation/" + XS + "documentation")
     if doc is not None and doc.text:
         out["documentation"] = " ".join(doc.text.split())

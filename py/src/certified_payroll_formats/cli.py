@@ -59,8 +59,12 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "validate":
-        with open(args.file, encoding="utf-8") as handle:
-            xml = handle.read()
+        try:
+            with open(args.file, encoding="utf-8") as handle:
+                xml = handle.read()
+        except OSError as error:
+            print(f"certified-payroll: cannot read {args.file}: {error.strerror}", file=sys.stderr)
+            return 2
         filename = os.path.basename(args.file)
         result = (validate_ca_ecpr(xml, filename=filename) if args.format == "ca"
                   else validate_ny_cert_payroll(xml, filename=filename))

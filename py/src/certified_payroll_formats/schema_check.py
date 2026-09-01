@@ -29,10 +29,41 @@ RULES = {
     "range": ("schema.range", "The value violates a maxInclusive or maxExclusive facet."),
     "fraction": ("schema.fractionDigits", "The value carries more fraction digits than the schema permits."),
     "type": ("schema.type", "The value is not a valid lexical form for its declared type."),
+    "enumeration": ("schema.enumeration", "The value is not one of the values the schema enumerates."),
 }
 
-DATE = re.compile(r"^-?\d{4}-\d{2}-\d{2}(Z|[+-]\d{2}:\d{2})?$")
-DATETIME = re.compile(r"^-?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$")
+DATE = re.compile(r"^-?(\d{4})-(\d{2})-(\d{2})(Z|[+-]\d{2}:\d{2})?$")
+DATETIME = re.compile(
+    r"^-?(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})?$")
+
+
+def is_calendar_date(year: int, month: int, day: int) -> bool:
+    """xs:date and xs:dateTime require a real calendar date, not merely the right shape.
+
+    ``2026-13-45`` matches the lexical pattern and is still not a date, and letting it
+    through produces nonsense downstream when the week window is computed from it.
+    """
+    if month < 1 or month > 12 or day < 1:
+        return False
+    leap = (year % 4 == 0 and year % 100 != 0) or year % 400 == 0
+    return day <= [31, 29 if leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+
+
+def _valid_date(value: str) -> bool:
+    match = DATE.match(value)
+    return bool(match) and is_calendar_date(*(int(g) for g in match.groups()[:3]))
+
+
+def _valid_datetime(value: str) -> bool:
+    match = DATETIME.match(value)
+    if not match:
+        return False
+    year, month, day, hour, minute, second = (int(g) for g in match.groups()[:6])
+    if not is_calendar_date(year, month, day):
+        return False
+    if minute > 59 or second > 59:
+        return False
+    return hour < 24 or (hour == 24 and minute == 0 and second == 0)
 INTEGER = re.compile(r"^[+-]?\d+$")
 DECIMAL = re.compile(r"^[+-]?(\d+(\.\d*)?|\.\d+)$")
 
@@ -67,6 +98,15 @@ def _check_value(definition: dict, node: Node, out: list, format_id: str) -> Non
     facets = definition.get("facets", {})
     declared = definition.get("type", "xs:string")
 
+    if "enumeration" in facets:
+        allowed = facets["enumeration"]
+        allowed = allowed if isinstance(allowed, list) else [allowed]
+        if value not in allowed:
+            out.append(finding(_rule("enumeration", format_id), **where,
+                               message=f"<{node.qname}> is not one of the enumerated values",
+                               expected=" | ".join(allowed)))
+            return
+
     if "pattern" in facets:
         try:
             if not re.fullmatch(facets["pattern"], value):
@@ -85,10 +125,21 @@ def _check_value(definition: dict, node: Node, out: list, format_id: str) -> Non
                            message=f"<{node.qname}> is longer than maxLength",
                            expected=f'at most {facets["maxLength"]} characters'))
 
-    if declared == "xs:date" and value and not DATE.match(value):
+    # An empty element is a valid xs:string with minLength 0, and is not a valid anything
+    # else. Without this, a blank <totHrsStraightTime/> is simply skipped and the real
+    # fault is never reported.
+    if value == "" and declared in ("xs:date", "xs:dateTime", "xs:boolean",
+                                    "xs:decimal", "xs:integer"):
         out.append(finding(_rule("type", format_id), **where,
-                           message=f"<{node.qname}> is not a valid xs:date", expected="yyyy-mm-dd"))
-    elif declared == "xs:dateTime" and value and not DATETIME.match(value):
+                           message=f"<{node.qname}> is empty, which is not a valid {declared}",
+                           expected=declared))
+        return
+
+    if declared == "xs:date" and value and not _valid_date(value):
+        out.append(finding(_rule("type", format_id), **where,
+                           message=f"<{node.qname}> is not a valid xs:date",
+                           expected="a real calendar date, yyyy-mm-dd"))
+    elif declared == "xs:dateTime" and value and not _valid_datetime(value):
         out.append(finding(_rule("type", format_id), **where,
                            message=f"<{node.qname}> is not a valid xs:dateTime",
                            expected="yyyy-mm-ddThh:mm:ss[.sss][Z]"))

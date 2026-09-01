@@ -58,6 +58,21 @@ jobs:
         env:
           PYTHONPATH: src
 
+  differential:
+    # The two implementations are written independently and must stay interchangeable.
+    # Every element of every fixture is mutated four ways and both must report the same
+    # rule ids for all of them.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python3 tools/differential.py
+
   schemas:
     # Fetches the published XSDs and fails if either agency has changed one.
     # Informational: a failure here means the dataset needs re-reviewing, not that

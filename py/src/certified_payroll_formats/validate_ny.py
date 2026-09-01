@@ -8,7 +8,7 @@ from typing import Optional
 
 from .data import format_data
 from .finding import finding, summarize
-from .schema_check import check_against_schema
+from .schema_check import check_against_schema, is_calendar_date
 from .xml_reader import XmlError, kid, kids, parse_xml, path_of, text_at
 
 US_STATE_ABBREVIATIONS = {
@@ -23,7 +23,15 @@ def _rules() -> dict:
     return {r["id"]: r for r in format_data("ny-certpayroll")["rules"]}
 
 
-def _window(week_ending: str) -> list:
+def _week_window(week_ending):
+    """The seven-day window, or None when the week ending date is not a real calendar date.
+
+    A value like 2026-13-45 is already reported by the schema check; deriving a window
+    from it would either raise or roll over into another month and flag every day.
+    """
+    match = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", week_ending or "")
+    if not match or not is_calendar_date(*(int(g) for g in match.groups())):
+        return None
     end = date.fromisoformat(week_ending)
     return [(end - timedelta(days=n)).isoformat() for n in range(6, -1, -1)]
 
@@ -49,9 +57,7 @@ def validate_ny_cert_payroll(xml: str, filename: Optional[str] = None) -> dict:
 
     out.extend(check_against_schema(root, "ny-certpayroll", None, report_namespace=not root.ns))
 
-    week_ending_raw = text_at(root, "weekEndingDate") or ""
-    week_ending = week_ending_raw[:10]
-    window = _window(week_ending) if re.fullmatch(r"\d{4}-\d{2}-\d{2}", week_ending) else None
+    window = _week_window((text_at(root, "weekEndingDate") or "")[:10])
 
     seen: dict = {}
 

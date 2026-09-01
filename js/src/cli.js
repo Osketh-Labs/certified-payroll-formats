@@ -64,7 +64,13 @@ function main() {
     case 'validate': {
       const [format, file] = rest;
       if (!file || !['ca', 'ny'].includes(format)) { process.stderr.write(USAGE); return 2; }
-      const xml = readFileSync(file, 'utf8');
+      let xml;
+      try {
+        xml = readFileSync(file, 'utf8');
+      } catch (error) {
+        process.stderr.write(`certified-payroll: cannot read ${file}: ${error.code ?? error.message}\n`);
+        return 2;
+      }
       const filename = basename(file);
       const result = format === 'ca'
         ? validateCaEcpr(xml, { filename })

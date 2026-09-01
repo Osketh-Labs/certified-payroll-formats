@@ -23,6 +23,7 @@ const RULES = {
   range: { id: 'schema.range', severity: 'error', statement: 'The value violates a maxInclusive or maxExclusive facet.' },
   fraction: { id: 'schema.fractionDigits', severity: 'error', statement: 'The value carries more fraction digits than the schema permits.' },
   type: { id: 'schema.type', severity: 'error', statement: 'The value is not a valid lexical form for its declared type.' },
+  enumeration: { id: 'schema.enumeration', severity: 'error', statement: 'The value is not one of the values the schema enumerates.' },
 };
 
 function ruleFor(kind, formatId) {
@@ -43,8 +44,33 @@ function index(formatId) {
   return { root: defs[0], byPath, childrenOf };
 }
 
-const DATE = /^-?\d{4}-\d{2}-\d{2}(Z|[+-]\d{2}:\d{2})?$/;
-const DATETIME = /^-?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
+const DATE = /^-?(\d{4})-(\d{2})-(\d{2})(Z|[+-]\d{2}:\d{2})?$/;
+const DATETIME = /^-?(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
+
+/**
+ * xs:date and xs:dateTime require a real calendar date, not merely the right shape.
+ * `2026-13-45` matches the lexical pattern and is still not a date, and letting it
+ * through produces nonsense downstream when the week window is computed from it.
+ */
+export function isCalendarDate(year, month, day) {
+  if (month < 1 || month > 12 || day < 1) return false;
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  return day <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+}
+
+function validDate(value) {
+  const m = DATE.exec(value);
+  return Boolean(m) && isCalendarDate(Number(m[1]), Number(m[2]), Number(m[3]));
+}
+
+function validDateTime(value) {
+  const m = DATETIME.exec(value);
+  if (!m) return false;
+  if (!isCalendarDate(Number(m[1]), Number(m[2]), Number(m[3]))) return false;
+  const [hour, minute, second] = [Number(m[4]), Number(m[5]), Number(m[6])];
+  if (minute > 59 || second > 59) return false;
+  return hour < 24 || (hour === 24 && minute === 0 && second === 0);
+}
 
 function checkValue(def, node, out, formatId) {
   const raw = node.text;
@@ -66,6 +92,17 @@ function checkValue(def, node, out, formatId) {
   const facets = def.facets ?? {};
   const type = def.type ?? 'xs:string';
 
+  if (facets.enumeration !== undefined) {
+    const allowed = [].concat(facets.enumeration);
+    if (!allowed.includes(value)) {
+      out.push(finding(ruleFor('enumeration', formatId), {
+        ...where, message: `<${node.qname}> is not one of the enumerated values`,
+        expected: allowed.join(' | '),
+      }));
+      return;
+    }
+  }
+
   if (facets.pattern !== undefined) {
     let re;
     try { re = new RegExp(`^(?:${facets.pattern})$`); } catch { re = null; }
@@ -83,9 +120,21 @@ function checkValue(def, node, out, formatId) {
     out.push(finding(ruleFor('length', formatId), { ...where, message: `<${node.qname}> is longer than maxLength`, expected: `at most ${facets.maxLength} characters` }));
   }
 
-  if (type === 'xs:date' && value && !DATE.test(value)) {
-    out.push(finding(ruleFor('type', formatId), { ...where, message: `<${node.qname}> is not a valid xs:date`, expected: 'yyyy-mm-dd' }));
-  } else if (type === 'xs:dateTime' && value && !DATETIME.test(value)) {
+  // An empty element is a valid xs:string with minLength 0, and is not a valid anything
+  // else. Without this, a blank <totHrsStraightTime/> reads as zero and the real fault
+  // is never reported.
+  const TYPED = ['xs:date', 'xs:dateTime', 'xs:boolean', 'xs:decimal', 'xs:integer'];
+  if (value === '' && TYPED.includes(type)) {
+    out.push(finding(ruleFor('type', formatId), {
+      ...where, message: `<${node.qname}> is empty, which is not a valid ${type}`,
+      expected: type, actual: '(empty)',
+    }));
+    return;
+  }
+
+  if (type === 'xs:date' && value && !validDate(value)) {
+    out.push(finding(ruleFor('type', formatId), { ...where, message: `<${node.qname}> is not a valid xs:date`, expected: 'a real calendar date, yyyy-mm-dd' }));
+  } else if (type === 'xs:dateTime' && value && !validDateTime(value)) {
     out.push(finding(ruleFor('type', formatId), { ...where, message: `<${node.qname}> is not a valid xs:dateTime`, expected: 'yyyy-mm-ddThh:mm:ss[.sss][Z]' }));
   } else if (type === 'xs:boolean' && value && !['true', 'false', '1', '0'].includes(value)) {
     out.push(finding(ruleFor('type', formatId), { ...where, message: `<${node.qname}> is not a valid xs:boolean`, expected: 'true or false' }));

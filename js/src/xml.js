@@ -134,21 +134,27 @@ export function parseXml(source) {
     const attrRe = /([^\s=/]+)\s*=\s*("([^"]*)"|'([^']*)')/g;
     let m;
     while ((m = attrRe.exec(body.slice(nameMatch[0].length))) !== null) {
+      // A repeated attribute is a well-formedness error, not a last-one-wins merge.
+      if (Object.prototype.hasOwnProperty.call(attrs, m[1])) {
+        throw new XmlError(`Duplicate attribute ${m[1]} on <${qname}>`, lineAt(i));
+      }
       attrs[m[1]] = decodeEntities(m[3] !== undefined ? m[3] : m[4], line);
     }
 
     const parent = stack[stack.length - 1] ?? null;
     const scope = { ...(parent ? parent.nsScope : {}) };
     for (const [key, value] of Object.entries(attrs)) {
-      if (key === 'xmlns') scope[''] = value;
-      else if (key.startsWith('xmlns:')) scope[key.slice(6)] = value;
+      // xmlns="" undeclares the default namespace: the element is in no namespace,
+      // which is not the same as being in a namespace whose URI is the empty string.
+      if (key === 'xmlns') scope[''] = value || null;
+      else if (key.startsWith('xmlns:')) scope[key.slice(6)] = value || null;
     }
     const { prefix, local } = splitName(qname);
     const node = {
       qname,
       name: local,
       prefix,
-      ns: prefix ? (scope[prefix] ?? null) : (scope[''] ?? null),
+      ns: (prefix ? scope[prefix] : scope['']) ?? null,
       attrs,
       children: [],
       text: '',

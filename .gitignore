@@ -9,3 +9,4 @@ build/
 tools/cache/
 js/data/
 py/src/certified_payroll_formats/data/
+.npmrc

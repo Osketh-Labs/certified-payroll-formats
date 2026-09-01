@@ -48,8 +48,12 @@ export function rule(id) {
     const found = rules(formatId).find((r) => r.id === id);
     if (found) return found;
   }
-  const wh = wh347().easyToMiss.find((r) => r.id === id);
-  return wh ? { ...wh, sources: resolveSources(wh.sources) } : null;
+  const form = wh347();
+  for (const group of [form.easyToMiss, form.checks]) {
+    const found = group.find((r) => r.id === id);
+    if (found) return { ...found, sources: resolveSources(found.sources) };
+  }
+  return null;
 }
 
 /** The element tree extracted from a published schema, as a flat list of paths. */
