@@ -21,8 +21,8 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/osketh/certified-payroll-formats"
-Source = "https://github.com/osketh/certified-payroll-formats"
+Homepage = "https://github.com/Osketh-AI/certified-payroll-formats"
+Source = "https://github.com/Osketh-AI/certified-payroll-formats"
 
 [project.scripts]
 certified-payroll = "certified_payroll_formats.cli:main"
