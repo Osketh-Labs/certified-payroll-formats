@@ -22,7 +22,7 @@
     "test": "node --test test/*.test.js",
     "prepack": "python3 ../tools/sync_packages.py"
   },
-  "repository": { "type": "git", "url": "git+https://github.com/Osketh-AI/certified-payroll-formats.git" },
-  "homepage": "https://github.com/Osketh-AI/certified-payroll-formats#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/Osketh-Labs/certified-payroll-formats.git" },
+  "homepage": "https://github.com/Osketh-Labs/certified-payroll-formats#readme",
   "dependencies": {}
 }

@@ -5,7 +5,7 @@
 # Before this workflow can succeed, a trusted publisher must be configured at
 # npmjs.com -> the package -> Settings -> Trusted Publisher -> GitHub Actions, with:
 #
-#   Organization or user   Osketh-AI
+#   Organization or user   Osketh-Labs
 #   Repository             certified-payroll-formats
 #   Workflow filename      publish.yml
 #   Environment name       (leave empty — this workflow declares no environment)

@@ -28,7 +28,7 @@ CACHE = ROOT / "tools" / "cache"
 # dol.ny.gov answers 403 to the default Python-urllib user agent. Identify the tool
 # properly rather than pretending to be a browser.
 USER_AGENT = ("certified-payroll-formats/0.1 "
-              "(+https://github.com/Osketh-AI/certified-payroll-formats)")
+              "(+https://github.com/Osketh-Labs/certified-payroll-formats)")
 
 SCHEMAS = {
     "ca": {
