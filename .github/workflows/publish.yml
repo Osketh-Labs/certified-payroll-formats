@@ -1,0 +1,104 @@
+# Publishes the npm package using trusted publishing (OIDC) — no token is stored
+# anywhere, and npm attaches a provenance attestation automatically because this
+# repository is public.
+#
+# Before this workflow can succeed, a trusted publisher must be configured at
+# npmjs.com -> the package -> Settings -> Trusted Publisher -> GitHub Actions, with:
+#
+#   Organization or user   Osketh-AI
+#   Repository             certified-payroll-formats
+#   Workflow filename      publish.yml
+#   Environment name       (leave empty — this workflow declares no environment)
+#
+# npm can only configure a trusted publisher on a package that already exists, so the
+# very first publish of a new package has to be done by hand with an OTP or a granular
+# token. Every release after that runs here.
+
+name: publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Pack and verify without publishing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write # required: this is what lets npm verify the OIDC identity
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Trusted publishing needs Node >= 22.14.0 and npm >= 11.5.1.
+          node-version: '22.14.0'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Use an npm new enough for trusted publishing
+        # setup-node ships the npm that came with the Node release, which is older
+        # than 11.5.1 for this line.
+        run: npm install -g npm@latest
+
+      - run: npm --version
+
+      - uses: actions/setup-python@v5
+        with:
+          # `prepack` runs tools/sync_packages.py to copy data/ and the README into the
+          # package, because npm packs only what is inside js/.
+          python-version: '3.11'
+
+      # Never publish something the tests have not passed on.
+      - name: Test
+        run: npm test
+        working-directory: js
+
+      - name: Test the Python package too, since they share the dataset
+        run: python -m unittest discover -s tests
+        working-directory: py
+        env:
+          PYTHONPATH: src
+
+      - name: Both implementations must still agree
+        run: python3 tools/differential.py
+
+      - name: Confirm the version is not already published
+        working-directory: js
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "$NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "::error::$NAME@$VERSION is already on the registry. Bump the version first."
+            exit 1
+          fi
+
+      - name: Verify the tarball carries the data and the README
+        working-directory: js
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json 2>/dev/null
+          node -e "
+            const files = require('/tmp/pack.json')[0].files.map(f => f.path);
+            for (const need of ['README.md', 'LICENSE', 'data/sources.json', 'src/index.js']) {
+              if (!files.includes(need)) { console.error('missing from tarball: ' + need); process.exit(1); }
+            }
+            console.log(files.length + ' files in the tarball');
+          "
+
+      - name: Publish
+        if: github.event_name == 'release' || inputs.dry_run == false
+        working-directory: js
+        # No NODE_AUTH_TOKEN: the OIDC identity above is the credential. Provenance is
+        # attached automatically for a public repository.
+        run: npm publish
+
+      - name: Dry run only
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run == true
+        run: echo "Dry run complete — everything above passed, nothing was published."

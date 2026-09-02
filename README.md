@@ -305,6 +305,18 @@ The suites also cover the inputs these formats actually permit at their limits: 
 largest file New York accepts is 500 employee work weeks, about a megabyte, and parsing
 it must stay linear.
 
+## Releasing
+
+`npm publish` runs from `.github/workflows/publish.yml` on a GitHub release, using npm
+trusted publishing: no token is stored anywhere, and npm attaches a provenance
+attestation automatically because this repository is public. The workflow refuses to
+publish a version that is already on the registry, and refuses a tarball missing its data
+or its README.
+
+npm can only configure a trusted publisher on a package that already exists, so the first
+publish of a new package is a manual one. PyPI has no such limitation — a pending
+publisher can be configured before the project exists.
+
 `data/` at the repository root is the single source of truth. `tools/sync_packages.py`
 copies it into each package before publishing, because neither npm nor a Python wheel can
 reference files above the package directory; the loaders fall back to the root when you
